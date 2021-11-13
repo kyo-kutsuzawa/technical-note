@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Generative Adversarial Imitation Learning</title>
+<link href="mystyle.css" rel="stylesheet" type="text/css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+</head>
+<body>
+    <header id="home">
+        <h1>Generative Adversarial Imitation Learning</h1>
+    </header>
+    <main>
+        <article>
+            <p>Jonathan Ho and Stefano Ermon, “Generative Adversarial Imitation Learning,” in Advances in Neural Information Processing Systems, 2016, pp. 4565-4573. <a href="https://papers.nips.cc/paper/2016/hash/cc7e2b878868cbae992d1fb743995d8f-Abstract.html">Online Available</a></p>
+            <h1 id="要約">要約</h1>
+            <p>強化学習と逆強化学習とを統一する定式化をおこなったら，敵対的生成ネットワークと似た形の模倣学習手法が導出できた。</p>
+            <h1 id="基礎知識">基礎知識</h1>
+            <p>まずは研究の背景となる基礎知識から。</p>
+            <h2 id="imitation-learning-模倣学習">Imitation learning （模倣学習）</h2>
+            <p>熟練者の動作データが与えられた状態で，それを<strong>模倣するように動作を学習</strong>する手法の総称。以下では基本的に，熟練者（<span class="math inline">\(\pi_E\)</span>）が環境から状態<span class="math inline">\(s\)</span>を受け取って行動<span class="math inline">\(a\)</span>を出力する状況を考える。</p>
+            <figure>
+            <img src="gail_img/1d6eb26c93ac2737317f4aa8101a9cf2.png" alt="Imitation learning" /><figcaption aria-hidden="true">Imitation learning</figcaption>
+            </figure>
+            <h2 id="behavior-cloning-行動クローニング">Behavior cloning （行動クローニング）</h2>
+            <p>熟練者の行動データを教師データとして<strong>教師あり学習</strong>する手法。熟練者がある状態<span class="math inline">\(s\)</span>である行動<span class="math inline">\(a\)</span>をしたというデータの組<span class="math inline">\((s, a)\)</span>がたくさんあるとして，<span class="math inline">\(\pi: s \mapsto a\)</span>を訓練する。</p>
+            <figure>
+            <img src="gail_img/10948c6870929a79cbe6678a455e3096.png" alt="Behavior cloning" /><figcaption aria-hidden="true">Behavior cloning</figcaption>
+            </figure>
+            <p>この方法は教師あり学習なので学習させやすいし，環境とのインタラクションがないので非常にお手軽。しかし学習後は環境とインタラクションすることから<strong>学習前後でタスクが変わる</strong>ことになり（分布シフト），そのせいで性能劣化が避けられないのが本質的な課題である。</p>
+            <h2 id="reinforcement-learning-rl強化学習">Reinforcement learning （RL，強化学習）</h2>
+            <p>環境とインタラクションしながら，累計コスト<span class="math inline">\(c(s, a) = \sum_{t=0}^\infty \gamma^t c(s_t, a_t)\)</span>を最小化する方策（状態<span class="math inline">\(s_t\)</span>をもとに行動<span class="math inline">\(a_t\)</span>を生成するもの）を得る手法の総称。つまり，<strong>コストが与えられる状況で最良の方策を得る</strong>のがゴール。</p>
+            <figure>
+            <img src="gail_img/c35c66f23ae1e2cd9ece0157ef98b75d.png" alt="Reinforcement learning" /><figcaption aria-hidden="true">Reinforcement learning</figcaption>
+            </figure>
+            <p>環境とインタラクションしながら学習するのでbehavior cloningのような分布シフトの問題は起きない。しかし学習には手間と時間がたくさん必要だし，コスト関数の設計が難しいことも多い。なお，論文では以下に示すmaximum causal entropy RLが扱われている。<span class="math display">\[
+            \mathrm{arg}\min_\pi -H(\pi) + \mathbb{E}_{\pi} \lbrack c(s, a)\rbrack
+            \]</span>ここで<span class="math inline">\(H(\pi) \equiv \mathbb{E}_\pi \lbrack -\log \pi (a|s) \rbrack\)</span>はγ-discounted causal entropy（因果的エントロピー）と呼ばれる値。</p>
+            <h2 id="inverse-reinforcement-learning-irl逆強化学習">Inverse reinforcement learning （IRL，逆強化学習）</h2>
+            <p>強化学習の逆をやる手法。<strong>熟練者が最小化するようなコスト関数を推定する</strong>のがゴール。もともとはbehavior cloningの悪い点を改善するために提案された手法なので，コスト関数を得る手法ではあるものの，多くの場合その後に良い方策を得ることを想定している。</p>
+            <figure>
+            <img src="gail_img/78facd6439e78420893a35d38fa9d904.png" alt="Inverse reinforcement learning" /><figcaption aria-hidden="true">Inverse reinforcement learning</figcaption>
+            </figure>
+            <p>論文では，以下に示すmaximum causal entropy IRLというものを扱っている。<span class="math display">\[
+            \mathrm{maximize}_{c} \left( \min_\pi -H(\pi) + \mathbb{E}_{\pi} \lbrack c(s, a)\rbrack \right) - \mathbb{E}_{\pi_E}\lbrack c(s, a)\rbrack
+            \]</span>この定式化においては，熟練者<span class="math inline">\(\pi_E\)</span>に対しては小さい値をとり，その他の方策<span class="math inline">\(\pi\)</span>に対しては大きい値をとるようなコスト関数を求める。</p>
+            <p>逆強化学習を使って模倣学習すると，反復処理の中に強化学習を含むことになるので計算がとても大変。しかも最終的にやりたいことは熟練者の行動を模倣することなのに，<strong>わざわざコスト関数の推定を経由するのは遠回り</strong>な気がしないだろうか……？ （コスト関数そのものは，学習者がどんな行動をすべきかという情報は与えてくれない！）</p>
+            <h2 id="generative-adversarial-networks-gan敵対的生成ネットワーク">Generative adversarial networks （GAN，敵対的生成ネットワーク）</h2>
+            <p>データを生成するモデル（generator）とデータの真偽を識別するモデル（discriminator）とを同時に学習させることで，<strong>訓練データとよく似たデータを生成させる</strong>モデル。すっっごく本物っぽいデータが生成できる（たとえば <em><a href="https://arxiv.org/abs/1809.11096">A. Brock et al., ICLR 2019.</a></em> とか参照）。GAILの基となる手法だが，GAN自体は模倣学習と関係ない。</p>
+            <figure>
+            <img src="gail_img/b832880959c09a91661873b869a02b23.png" alt="Generative adversarial networks" /><figcaption aria-hidden="true">Generative adversarial networks</figcaption>
+            </figure>
+            <p>定性的な学習方法は以下のとおり（最初に提案されたGANの場合）：1. generatorがランダムにデータを生成する。（ふつうNNは決定的なので，一様乱数<span class="math inline">\(z\)</span>を入力することでランダムな出力を実現する）2. 生成されたデータと訓練データとを適当に混ぜる。3. 混ぜたデータをdiscriminatorに与えて，訓練データか生成データかを識別させる。最初に提案されたGANでは訓練データに1を，生成データに0を予測させている。4. 識別結果をもとに，<strong>discriminatorは識別精度を上げるように，generatorは識別精度を下げるように学習する</strong>。 → うまくいけば，generatorは訓練データと区別がつかないようなデータを生成してくれるようになる</p>
+            <p>細かい話をすると，discriminatorの出力は生成データ<span class="math inline">\(x\)</span>の確率分布と訓練データ<span class="math inline">\(x&#39;\)</span>の確率分布との違いに対応する（たとえば最初に提案されたGANでは，確率分布のJSダイバージェンスというものが推定できる）。generatorは確率分布の違いが小さくなるように訓練され，discriminatorは確率分布の違いの推定値がより正確になるように訓練される。</p>
+            <h1 id="generative-adversarial-imitation-learning-gail">Generative adversarial imitation learning (GAIL)</h1>
+            <p>端的にいうと……<strong>GANの枠組みを使えば，熟練者と区別つかないような挙動の方策が学習できる</strong>って手法。</p>
+            <figure>
+            <img src="gail_img/a8cd4fc12a9a8a2f57f45a83ded00a46.png" alt="Generative adversarial imitation learning" /><figcaption aria-hidden="true">Generative adversarial imitation learning</figcaption>
+            </figure>
+            <p>学習の流れとしては，学習者と熟練者の状態-行動ペア<span class="math inline">\((s, a)\)</span>を識別するようなdiscriminatorを訓練しつつ，並行して識別結果を報酬に使って<strong>識別精度を下げるように<span class="math inline">\(\pi\)</span>を強化学習</strong>する。うまくいくと，究極的にはdiscriminatorは少しでもexpertらしくない挙動があれば察知できるようになり，一方で学習者はexpertと完全に区別つかない挙動ができるようになる。アルゴリズムは論文のAlgorithm 1を参照。</p>
+            <p>学習者はdiscriminatorの出力の対数をコスト関数として強化学習を進める。discriminatorの出力の定性的意味を踏まえると，<strong>GAILは熟練者のコスト関数を推定する代わりに，熟練者と学習者との挙動の違いを直接測って模倣学習している</strong>とみなせる。これが「GAILは強化学習と逆強化学習とを統合した手法である」という理由である，たぶん。</p>
+            <h2 id="理論的背景">理論的背景</h2>
+            <p>実はこの論文は強化学習と逆強化学習の理論的統合も達成している。端的にいうと，<strong>「逆強化学習した後に強化学習する」というプロセスは「ある適当な尺度のもとで熟練者の挙動と学習者の挙動との差を最小化する」という最適化問題と等価である</strong>ことを証明した。GAILはその定式化の上で，表現能力と扱いやすさとのトレードオフを取った手法とみなせる。</p>
+            <p>IRLにおいて複雑なコスト関数も許してしまうと過学習するおそれが生じるので，何らかの凸な正則化関数<span class="math inline">\(\psi\)</span>を使って表現能力を制限してやることを考える。<span class="math display">\[
+            \mathrm{maximize}_{c} -\psi(c) + \left( \min_\pi -H(\pi) + \mathbb{E}_{\pi} \lbrack c(s, a)\rbrack \right) - \mathbb{E}_{\pi_E}\lbrack c(s, a)\rbrack
+            \]</span>たとえばコスト関数を2次形式に制限したければ，「cが2次形式じゃなければ<span class="math inline">\(\psi(c) = +\infty\)</span>」と<span class="math inline">\(\psi\)</span>を定義すればよい。また，<span class="math inline">\(\psi(c)=\mathrm{constant}\)</span>とすれば制約がないのと等価なので，上の定式化はIRLのより一般的な形式と考えられる。</p>
+            <p>方策 <span class="math inline">\(\pi\)</span>が動いたときに<span class="math inline">\((s, a)\)</span>が得られる確率的な指標として，occupancy measureという概念を導入する。<span class="math display">\[
+            \rho_\pi(s, a) \equiv \pi(a|s) \sum_{t=0}^\infty \gamma^t P(s_t = s | \pi)
+            \]</span>この概念を導入することで，ある方策がどういう挙動をするかを<span class="math inline">\((s, a)\)</span>のデータセットから確率的に扱うことができる。さらに，コスト関数の期待値を<span class="math display">\[
+            \mathbb{E}_{\pi} \lbrack c(s, a)\rbrack = \sum_{s, a} \rho_\pi(s, a)c(s, a)
+            \]</span>と書き換えることができる（右辺は<span class="math inline">\((s, a)\)</span>のデータセットから計算できる）。</p>
+            <p>正則化関数<span class="math inline">\(\psi\)</span>を使った定式化とoccupancy measureの導入によって，<strong>最終的に「逆強化学習した後に強化学習する」という問題は以下のように書き換えられる！</strong><span class="math display">\[
+            \mathrm{arg}\min_\pi -H(\pi) + \psi^*(\rho_\pi - \rho_{\pi_E})
+            \]</span>ここで<span class="math inline">\(\psi^*\)</span>は<span class="math inline">\(\psi\)</span>の凸共役と呼ばれる関数であり，以下のように定義される。<span class="math display">\[
+            \psi^*(x) = \sup_c c^\top x - \psi(c)
+            \]</span>上記の定式化をざっくり説明すると，<strong>学習者と熟練者との挙動の確率分布的な違い<span class="math inline">\((\rho_\pi - \rho_{\pi_E})\)</span>を尺度<span class="math inline">\(\psi^*\)</span>のもとで最小化する問題</strong>といえる。</p>
+            <p>このとき<strong>正則化関数<span class="math inline">\(\psi\)</span>を様々に選ぶことで，異なる模倣学習手法を導出することができる</strong>。例えば論文では，</p>
+            <ul>
+            <li><span class="math inline">\(\psi\)</span>を定数関数とすると，<span class="math inline">\(\rho_\pi = \rho_{\pi_E}\)</span>となる<span class="math inline">\(\pi\)</span>が最適解となる。
+            <ul>
+            <li>なお，論文ではこれを具体例として，上記のIRL+RLの定式化がIRLの双対問題であることを証明している。曰く，<strong>従来のIRLとRLとを交互に計算する方法は主問題と双対問題を交互に最適化するdual ascent methodに相当するが，IRLの場合はRLの計算が大変なので効率的じゃない</strong>らしい。</li>
+            </ul></li>
+            <li><span class="math inline">\(\psi\)</span>を，コスト関数が特定の形式（与えられた関数の線形和とか）のとき<span class="math inline">\(\psi(c) = 0\)</span>，それ以外のとき<span class="math inline">\(\psi(c) = +\infty\)</span>とすると，apprenticeship learningという模倣学習手法が導出できるらしい。</li>
+            </ul>
+            <p>GAILも上述の具体例のように，<span class="math inline">\(\psi\)</span>を適切に選んでやることで導出できる。そもそも<span class="math inline">\(\psi\)</span>はコスト関数の表現能力を制限する正則化関数なので，そこには<strong>表現能力と学習しやすさとのトレードオフ</strong>が存在する。<span class="math inline">\(\psi\)</span>による制限を緩くすると<span class="math inline">\((\rho_\pi - \rho_{\pi_E})\)</span>が厳密に扱えるようになるが学習が大変になる。一方で正則化を厳しくすると学習が収束しやすいので複雑な環境にも適用しやすくなるが，<span class="math inline">\((\rho_\pi - \rho_{\pi_E})\)</span>を測る尺度が粗くなるので模倣の精度も粗くなる。</p>
+            <p>GAILは以下の<span class="math inline">\(\psi_\mathrm{GA}\)</span>を正則化関数に用いることで導出できる。<span class="math display">\[
+            \psi_\mathrm{GA} \triangleq
+            \begin{cases}
+            \mathbb{E}_{\pi_{\mathrm{E}}}[g(c(s, a))] &amp; \text{if } c &lt; 0,\\
+            +\infty &amp; \text{otherwise},
+            \end{cases}
+            \]</span>where<span class="math display">\[
+            g(x) = 
+            \begin{cases}
+            -x-\log(1-e^x) &amp; \text{if } x &lt; 0,\\
+            +\infty &amp; \text{otherwise}.
+            \end{cases}
+            \]</span></p>
+            <p>この正則化関数は，熟練者の挙動が低いコストになるコスト関数に対して小さいペナルティをつけ，熟練者の挙動に対して0に近いコストを与えるときに大きなペナルティをつける。<strong>従来の正則化関数との主な違いは，1)<span class="math inline">\(\psi_\mathrm{GA}\)</span>はコスト関数の種類を制限しない点，2) 期待値計算を含むことで<span class="math inline">\(\psi_\mathrm{GA}\)</span>自体が熟練者のデータに合わせて変化できる点</strong>にあるようだ。</p>
+            <p>このとき<span class="math inline">\(\psi^*_\mathrm{GA}(\rho_\pi - \rho_{\pi_E})\)</span>は，0～1の値をとる関数<span class="math inline">\(D(s, a)\)</span>を使って以下のように書ける。<span class="math display">\[\psi^*_\mathrm{GA}(\rho_\pi - \rho_{\pi_E}) = \sup_D \mathbb{E}_\pi \lbrack \log(D(s, a)) \rbrack + \mathbb{E}_{\pi_E} \lbrack 1 - \log(D(s, a)) \rbrack\]</span>この式の右辺は<span class="math inline">\(\rho_\pi\)</span>と<span class="math inline">\(\rho_{\pi_E}\)</span>とのJSダイバージェンスを取るのとほぼ等価であり，<strong>GANのdiscriminatorの目的関数と同じ形をしている！</strong></p>
+            <h1 id="検証">検証</h1>
+            <p>提案手法であるGAILを他の模倣学習手法と比較した。このときGAILのRL部分にはTRPOを使った。結果として，<strong>ほとんどのタスクでGAILは高パフォーマンスであり，しかもパフォーマンスのばらつきが少なかった</strong>。一方でReacherにおいてはBehavior cloningでそもそもパフォーマンスが高かった。結果は論文のFigure 1を参照。</p>
+            <h1 id="考察">考察</h1>
+            <p>GAILは，熟練者のデータ数という点では効率が良いが，<strong>訓練時の環境とのインタラクション数という点では特にサンプル効率が良いわけではなかった</strong>（モデルフリーな手法なせいもある）。</p>
+            <h1 id="感想とか">感想とか</h1>
+            <ul>
+            <li>模倣学習，RL，IRL，GANといういろんな概念が関連付けられることもおもしろいが，<strong>理論的背景がしっかりしているのがとても好き</strong>。最近では模倣学習や強化学習を確率論的にちゃんと扱うcontrol as inferenceという概念もあるようだ（SACもこの流れの一部っぽい）
+            <ul>
+            <li>数学 is とても大事</li>
+            </ul></li>
+            <li>この論文以降の流れとしては，環境とのインタラクションが不要なオフライン強化学習とか，SACを模倣学習に転用したSQILという手法もあったりするようだ。個人的にはSQILというのがおもしろそう。熟練者の動作に報酬+1を，学習者の動作に報酬0を与えてSoft Q学習すると理論的に妥当な模倣学習になるという手法。</li>
+            </ul>
+        </article>
+    </main>
+</body>
+</html>
