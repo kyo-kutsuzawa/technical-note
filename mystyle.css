@@ -63,7 +63,7 @@ img {
 }
 
 .math.display {
-    display: inline-block;
+    display: block;
     width: 100%;
     overflow-x: auto;
 }
