@@ -51,7 +51,13 @@
             <figure>
             <img src="gail_img/b832880959c09a91661873b869a02b23.png" alt="Generative adversarial networks" /><figcaption aria-hidden="true">Generative adversarial networks</figcaption>
             </figure>
-            <p>定性的な学習方法は以下のとおり（最初に提案されたGANの場合）：1. generatorがランダムにデータを生成する。（ふつうNNは決定的なので，一様乱数<span class="math inline">\(z\)</span>を入力することでランダムな出力を実現する）2. 生成されたデータと訓練データとを適当に混ぜる。3. 混ぜたデータをdiscriminatorに与えて，訓練データか生成データかを識別させる。最初に提案されたGANでは訓練データに1を，生成データに0を予測させている。4. 識別結果をもとに，<strong>discriminatorは識別精度を上げるように，generatorは識別精度を下げるように学習する</strong>。 → うまくいけば，generatorは訓練データと区別がつかないようなデータを生成してくれるようになる</p>
+            <p>定性的な学習方法は以下のとおり（最初に提案されたGANの場合）：</p>
+            <ol type="1">
+            <li>generatorがランダムにデータを生成する。（ふつうNNは決定的なので，一様乱数<span class="math inline">\(z\)</span>を入力することでランダムな出力を実現する）</li>
+            <li>生成されたデータと訓練データとを適当に混ぜる。</li>
+            <li>混ぜたデータをdiscriminatorに与えて，訓練データか生成データかを識別させる。最初に提案されたGANでは訓練データに1を，生成データに0を予測させている。</li>
+            <li>識別結果をもとに，<strong>discriminatorは識別精度を上げるように，generatorは識別精度を下げるように学習する</strong>。 → うまくいけば，generatorは訓練データと区別がつかないようなデータを生成してくれるようになる</li>
+            </ol>
             <p>細かい話をすると，discriminatorの出力は生成データ<span class="math inline">\(x\)</span>の確率分布と訓練データ<span class="math inline">\(x&#39;\)</span>の確率分布との違いに対応する（たとえば最初に提案されたGANでは，確率分布のJSダイバージェンスというものが推定できる）。generatorは確率分布の違いが小さくなるように訓練され，discriminatorは確率分布の違いの推定値がより正確になるように訓練される。</p>
             <h1 id="generative-adversarial-imitation-learning-gail">Generative adversarial imitation learning (GAIL)</h1>
             <p>端的にいうと……<strong>GANの枠組みを使えば，熟練者と区別つかないような挙動の方策が学習できる</strong>って手法。</p>
