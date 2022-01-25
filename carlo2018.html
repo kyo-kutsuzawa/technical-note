@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dynamic Locomotion in the MIT Cheetah 3 Through Convex Model-Predictive Control</title>
+<link href="mystyle.css" rel="stylesheet" type="text/css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+</head>
+<body>
+    <header id="home">
+        <h1>Dynamic Locomotion in the MIT Cheetah 3 Through Convex Model-Predictive Control</h1>
+    </header>
+    <main>
+        <article>
+            <p>Jared Di Carlo, Patrick M. Wensing, Benjamin Katz, Gerardo Bledt, and Sangbae Kim, “Dynamic Locomotion in the MIT Cheetah 3 Through Convex Model-Predictive Control,” in Proceedings of 2018 IEEE/RSJ International Conference on Intelligent Robots and Systems, 2018, pp. 1–9. <a href="https://ieeexplore.ieee.org/document/8594448">Online Available</a></p>
+            <h1 id="要約">要約</h1>
+            <p>4脚ロボットの歩行を，簡易な物理モデルを用いたMPCによって高速かつ頑健に制御する手法を提案した。</p>
+            <h1 id="制御則">制御則</h1>
+            <p>各脚について，<strong>脚が接地しているかどうかで制御則を切り替える</strong>。接地時にはMPCを，浮遊時にはPD制御を使って制御する。各脚の接地状態は一定周期で切り替わるように制御される。</p>
+            <h2 id="遊脚の制御">遊脚の制御</h2>
+            <p>遊脚は動力学補償と加速度フィードフォワード制御がついたPD制御で制御される。<span class="math inline">\(i\)</span> 番目の脚のトルク指令 <span class="math inline">\(\boldsymbol{\tau}_i\)</span> は以下のように計算される：<span class="math display">\[
+            \boldsymbol{\tau}_i = \boldsymbol{J}_i^{\top} \left[ \boldsymbol{K}_{\mathrm{p}} (\boldsymbol{p}_{i, \mathrm{ref}} - \boldsymbol{p}_i) + \boldsymbol{K}_{\mathrm{d}} (\boldsymbol{v}_{i,\mathrm{ref}} - \boldsymbol{v}_i) \right] + \boldsymbol{\tau}_{i, \mathrm{ff}}
+            \]</span><span class="math inline">\(\boldsymbol{p}_i\)</span> は足先の位置，<span class="math inline">\(\boldsymbol{v}_i\)</span> は足先の速度である。<span class="math inline">\(\bullet_{\mathrm{ref}}\)</span> は指令値を表す。また，<span class="math inline">\(\boldsymbol{K}_{\mathrm{p}}, \boldsymbol{K}_{\mathrm{d}}\)</span> は制御ゲイン，<span class="math inline">\(\boldsymbol{J}_i\)</span> は <span class="math inline">\(i\)</span> 番目の脚のヤコビ行列である。<span class="math inline">\(\boldsymbol{\tau}_{i,\mathrm{ff}}\)</span> はフィードフォワード指令で，以下のように計算される：<span class="math display">\[
+            \boldsymbol{\tau}_{i,\mathrm{ff}} = \boldsymbol{J}^{\top}  \boldsymbol{\Lambda}_i (\boldsymbol{a}_{i, \mathrm{ref}} - \dot{\boldsymbol{J}}_i \dot{\boldsymbol{q}}_i) + \boldsymbol{C}_i \dot{\boldsymbol{q}}_i + \boldsymbol{G}_i
+            \]</span><span class="math inline">\(\boldsymbol{a}_{i, \mathrm{ref}}\)</span> は足先の加速度指令であり，<span class="math inline">\(\dot{\boldsymbol{q}}_i\)</span> は関節角速度である。<span class="math inline">\(\boldsymbol{\Lambda}\)</span> は関節からみた慣性を表す。また，<span class="math inline">\(\boldsymbol{C}_i \dot{\boldsymbol{q}}_i\)</span> はコリオリ力を，<span class="math inline">\(\boldsymbol{G}_i\)</span> は重力を表す。比例ゲイン <span class="math inline">\(\boldsymbol{K}_{\mathrm{p}}\)</span> は，脚の見かけの慣性変化によらず自然角周波数が一定となるように調整される。<span class="math display">\[
+            K_{\mathrm{p}, i} = \omega_i^2 \Lambda_{i, i}
+            \]</span></p>
+            <p>遊脚の接地位置は，<em>Raibert, 1986</em> （読んでいない）をヒントにしたヒューリスティックな手法によって決定される。ざっくり言うと重心の速度方向に向けて足を置くように決定される。具体的には，<span class="math inline">\(x\)</span>-<span class="math inline">\(y\)</span> 平面上での目標接地位置は次式で決定される：<span class="math display">\[
+            \boldsymbol{p}^{\mathrm{des}} = \boldsymbol{p}^{\mathrm{ref}} + \boldsymbol{v}^{\mathrm{CoM}} \frac{\Delta t}{2}
+            \]</span><span class="math inline">\(\Delta t\)</span> は接地期間，<span class="math inline">\(\boldsymbol{p}^{\mathrm{ref}}\)</span> は腰の位置を <span class="math inline">\(x\)</span>-<span class="math inline">\(y\)</span> 平面に射影した位置，<span class="math inline">\(\boldsymbol{v}^{\mathrm{CoM}}\)</span> はロボットの重心速度を <span class="math inline">\(x\)</span>-<span class="math inline">\(y\)</span> 平面に射影したベクトルである。接地したかどうかは <em>Bledt et al., 2018</em> （ちゃんと読んでいない）のアルゴリズムで検出され，もしも予定より早い時間に接地した場合は即座に制御則を接地時のものに切り替える。</p>
+            <h2 id="支持脚の制御">支持脚の制御</h2>
+            <p>支持脚は<strong>床反力が所望の値となるようにトルク制御</strong>される。参照トルクは所望の床反力からヤコビ行列を使って算出される。<span class="math display">\[
+            \boldsymbol{\tau}_i = \boldsymbol{J}_i^{\top} \boldsymbol{R}_i^{\top} \boldsymbol{f}_i
+            \]</span>ここで <span class="math inline">\(\boldsymbol{J}_i\)</span> は <span class="math inline">\(i\)</span> 番目の脚のヤコビ行列であり， <span class="math inline">\(\boldsymbol{R}_i\)</span> はロボットの身体をワールド座標系に変換する回転行列である。</p>
+            <p>各脚の所望の床反力は，MPCによって算出される。まず，ロボットの運動は <strong>脚を無視してひとつの剛体としてモデル化</strong> される：<span class="math display">\[
+            \ddot{\boldsymbol{p}} = \frac{1}{m} \sum_{i=1}^{n} \boldsymbol{f}_i - \boldsymbol{g}
+            \]</span><span class="math display">\[
+            \frac{\mathrm{d}}{\mathrm{d}t} (\boldsymbol{I} \boldsymbol{\omega}) = \sum_{i=1}^n \boldsymbol{r}_i \times \boldsymbol{f}_i
+            \]</span><span class="math display">\[
+            \dot{\boldsymbol{R}} = [\boldsymbol{\omega}]_{\times} \boldsymbol{R}
+            \]</span>さらに角運動量の時間微分について<strong>ジャイロモーメントの影響をゼロに近似</strong>することで，回転に関する運動方程式を線形近似できる：<span class="math display">\[
+            \frac{\mathrm{d}}{\mathrm{d}t} (\boldsymbol{I} \boldsymbol{\omega}) = \boldsymbol{I} \dot{\boldsymbol{\omega}} + \boldsymbol{\omega} \times (\boldsymbol{I} \boldsymbol{\omega}) \approx \boldsymbol{I} \dot{\boldsymbol{\omega}}
+            \]</span>すると，ロボットの並進と回転のダイナミクスは局所的に線形状態方程式で表現できる：<span class="math display">\[
+            \frac{\mathrm{d}}{\mathrm{d}t} \boldsymbol{x}(t) = \boldsymbol{A}_{\mathrm{c}}(\psi) \boldsymbol{x} + \boldsymbol{B}_{\mathrm{c}}(\boldsymbol{r}_1, \ldots, \boldsymbol{r}_n, \psi) \boldsymbol{u}(t)
+            \]</span>これを離散化すると，最終的に離散時間状態方程式は以下のように表現できる：<span class="math display">\[
+            \boldsymbol{x}_{i+1} = \boldsymbol{A}_i \boldsymbol{x}_i + \boldsymbol{B}_i \boldsymbol{u}_i
+            \]</span>状態方程式は最適化においては等式制約として利用される。</p>
+            <p>この他に，各脚の床反力は静止摩擦の範囲内でのみ発揮できること，および支持脚のみが床反力を発生できることも制約として利用される。静止摩擦に関する条件は以下のように表現される：<span class="math display">\[
+            f_{\mathrm{min}} \leq f_z \leq f_{\mathrm{max}}
+            \]</span><span class="math display">\[
+            -\mu f_z \leq \pm f_x \leq \mu f_z
+            \]</span><span class="math display">\[
+            -\mu f_z \leq \pm f_y \leq \mu f_z
+            \]</span></p>
+            <p>最終的に，状態変数を所望の値に2乗誤差の意味で近づける問題は<strong>制約付き2次計画問題</strong>として定式化できる：<span class="math display">\[
+            \begin{aligned}
+            \min_{\boldsymbol{x}, \boldsymbol{u}}&amp; \sum_{i=0}^{k-1} \| \boldsymbol{x}_{i+1} - \boldsymbol{x}_{i+1, \mathrm{ref}} \|_{\boldsymbol{Q}_i} + \| \boldsymbol{u}_i \|_{\boldsymbol{R}_i} \\
+            \text{subject to }&amp; \boldsymbol{x}_{i+1} = \boldsymbol{A}_i \boldsymbol{x}_i + \boldsymbol{B}_i \boldsymbol{u}_i, \\
+            &amp; \underline{\boldsymbol{c}}_i \leq \boldsymbol{C}_i \boldsymbol{x}_i \leq \bar{\boldsymbol{c}}_i, \\
+            &amp; \boldsymbol{D}_i \boldsymbol{u}_i = 0.
+            \end{aligned}
+            \]</span></p>
+            <p>さらにまとめ直すと以下のような形式に帰着できる：<span class="math display">\[
+            \begin{aligned}
+            \min_{\boldsymbol{U}}&amp; \boldsymbol{U}^\top \boldsymbol{H} \boldsymbol{U} + \boldsymbol{U}^\top \boldsymbol{g} \\
+            \text{subject to }&amp; \underline{\boldsymbol{c}} \leq \boldsymbol{C} \boldsymbol{U} \leq \bar{\boldsymbol{c}}.
+            \end{aligned}
+            \]</span><span class="math inline">\(\boldsymbol{U} \in \mathbb{R}^{3nk}\)</span> は <span class="math inline">\(n\)</span> 本の脚についての <span class="math inline">\(k\)</span> ステップ分の制御入力である。</p>
+            <h1 id="検証">検証</h1>
+            <p>計算には2011年のIntel Core i7を使った。状態推定や遊脚制御などはMatlab/simulinkで実装したものをC言語に変換して走らせた。MPCはC++で実装された。線形代数計算にはEigen3を使い，制約付き2次計画問題にはqpOASESを使った。</p>
+            <p>ギャロップの制御において，計算速度はおおむね0.2～0.3 msくらいで，遅くても0.5 ms以内であった。そのほか，立位やトロット，flying trot，ペース，バウンド，プロンク，3-legged gaitも実現した。</p>
+            <p>トロットで速度を上げすぎると，遊脚が他の脚に接触してしまった。また，あまりにも腰の速度が速いと遊脚の制御が追い付かなかった。それによって姿勢制御の性能が悪くなり，実験用のトレッドミルから落ちてしまうことがあった。シミュレーション内で脚の最高速度を上げてみたら高速度でもちゃんと移動できた。</p>
+            <h1 id="今後の展望">今後の展望</h1>
+            <p>今回は歩容が事前に設計されたものだったので，そこを上位の動作計画で決定できると頑健性や性能が向上するだろう。</p>
+            <h1 id="感想とか">感想とか</h1>
+            <ul>
+            <li>MPCすごい。シンプルなモデル化でも制御周期が十分短ければ機能するんだなというのが印象的。</li>
+            <li>遊脚の制御と支持脚の制御とがまったく別々に設計されているが，これはやはり足の接触状態でダイナミクスが不連続に切り替わるからだろうか。そのあたりは学習ベースの手法のほうが得意？</li>
+            </ul>
+            <h1 id="参考文献">参考文献</h1>
+            <ol type="1">
+            <li>M. H. Raibert, Legged Robots That Balance. Cambridge, MA, USA: Massachusetts Institute of Technology, 1986.</li>
+            <li>G. Bledt, P. M. Wensing, S. Ingersoll, and S. Kim, “Contact model fusion for event-based locomotion in unstructured terrains,” in Proceedings of 2018 IEEE International Conference on Robotics and Automation, 2018, pp. 4399–4406.</li>
+            </ol>
+        </article>
+    </main>
+</body>
+</html>
