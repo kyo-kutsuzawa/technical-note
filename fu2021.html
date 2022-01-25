@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Minimizing Energy Consumption Leads to the Emergence of Gaits in Legged Robots</title>
+<link href="mystyle.css" rel="stylesheet" type="text/css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+</head>
+<body>
+    <header id="home">
+        <h1>Minimizing Energy Consumption Leads to the Emergence of Gaits in Legged Robots</h1>
+    </header>
+    <main>
+        <article>
+            <p>Zipeng Fu, Ashish Kumar, Jitendra Malik, and Deepak Pathak, “Minimizing Energy Consumption Leads to the Emergence of Gaits in Legged Robots,” Conference on Robot Learning, 2021. <a href="https://energy-locomotion.github.io/">Online Available</a></p>
+            <h1 id="要約">要約</h1>
+            <p>エネルギーを最小化するように強化学習したら，4脚ロボットは速度に応じて異なる歩容を学習した。</p>
+            <h1 id="手法">手法</h1>
+            <p>方策は30次元の状態変数を入力として，12次元の目標関節角度を出力する。状態変数は関節角度と関節角速度，胴体のロール角とピッチ角，各脚が接地しているかどうかのバイナリ変数で構成される。各関節はPD制御で制御される。</p>
+            <p>報酬関数は以下のように定義される：<span class="math display">\[
+            r = r_{\mathrm{forward}} + \alpha_1 r_{\mathrm{energy}} + r_{\mathrm{alive}}
+            \]</span><span class="math display">\[
+            r_{\mathrm{forward}} = - \alpha_2 | v_x - v_x^{\mathrm{target}} | - | v_y |^2 - | \omega_{\mathrm{yaw}} |^2
+            \]</span><span class="math display">\[
+            r_{\mathrm{energy}} = - \boldsymbol{\tau}^\top \dot{\boldsymbol{q}}
+            \]</span></p>
+            <p>学習はシミュレーション上で行われた後，実機に転移される。強化学習はPPOとAdamでおこないつつ，RMAという手法で環境情報のエンコードをおこなう。学習は15000エポックおこなわれ，各エポックでは100000個の状態-行動が使われた。シミュレーション上では様々な地形が使われる。</p>
+            <p>異なる速度の歩行をひとつの方策に学習させる際には，個別に学習した方策を蒸留する方法をとった。速度を変えてマルチタスク学習させる方法はうまくいかなかったらしい。複数の方策を個別に学習させた後，方策ラベルを潜在表現として教師あり学習しつつ，中間的な速度の運動を含めて強化学習した。</p>
+            <h1 id="結果">結果</h1>
+            <p>Unitree社のA1を使用した。低速（0.375 m/s），中速（0.9 m/s），高速（1.5 m/s）の3通りの速度それぞれについて同一のハイパーパラメータで方策を学習させたところ，低速では <em>walk</em> が，中速では <em>trot</em> が，高速では <em>bounce</em> が観察された。加えて，いずれの方策もMPCよりもエネルギー効率が高かった。さらに学習済みの方策はファインチューニングなしで実機にも適用できた。頑健性もあり，たとえば1 kgの重りを乗せたりしても転ばず歩行することができた。</p>
+            <p>さらに学習された動作の Froude 比を計算したところ，4脚動物と同程度の値であることがわかった。Froude 比は <span class="math inline">\(F = v^2 / g h\)</span> で定義される値であり，動物においては形態が似ていればサイズが違っても同程度の値となることが知られている。</p>
+            <p>学習時にはエネルギー消費のペナルティしか与えていないが，エネルギー消費が減るにつれてトルクやトルク変化率，足のスリップ，関節角速度，行動の正則化に相当する値も良くなっていった。</p>
+            <p>平地で外乱なしで学習させたところ，不自然で不安定な動作になった。</p>
+            <h1 id="感想とか">感想とか</h1>
+            <ul>
+            <li>動物が歩容を変えるのはエネルギー効率のためって話は知っていたけど，エネルギー効率だけから歩容が分化するというのは驚き。</li>
+            <li><a href="carlo2018.html">MPCで歩行制御した研究</a>では床反力の制御が大事だった一方で，この研究では接地しているかどうかの2値しか見ていないのが興味深い。</li>
+            <li>マルチタスクではうまくいかなかったが蒸留ではうまくいったという部分はなんか役立ちそうな知見。</li>
+            <li>地味にsim-to-realの部分がすごい気がする。制御方策を実機に適用するときは参考にしたい。</li>
+            </ul>
+        </article>
+    </main>
+</body>
+</html>
