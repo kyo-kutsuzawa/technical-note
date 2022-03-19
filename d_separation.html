@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Title</title>
+<link href="mystyle.css" rel="stylesheet" type="text/css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+</head>
+<body>
+    <header id="home">
+        <h1>有向分離（d-separation）</h1>
+    </header>
+    <main>
+        <article>
+            <h1 id="概要">概要</h1>
+            <p>Graphical modelにおいて経路がブロックされるのは以下の３つのとき：</p>
+            <ol type="1">
+            <li>ノードが観測済でhead-to-tailである。<br><img src="d_separation/head2tail_observed.svg" alt="head-to-tail observed" /></li>
+            <li>ノードが観測済でhead-to-headである。<br><img src="d_separation/tail2tail_observed.svg" alt="head-to-tail observed" /></li>
+            <li>ノードがhead-to-headで，自身もその子孫すべても未観測である。<br><img src="d_separation/head2head_descendants.svg" alt="head-to-head non-observed for all descendants" /></li>
+            </ol>
+            <p>2つのノードの間にあるすべての経路がブロックされていれば，その2つは条件付き独立となる。</p>
+        </article>
+    </main>
+</body>
+</html>
