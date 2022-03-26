@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Real numbers, data science and chaos: How to fit any dataset with a single parameter</title>
+<link href="mystyle.css" rel="stylesheet" type="text/css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+</head>
+<body>
+    <header id="home">
+        <h1>Real numbers, data science and chaos: How to fit any dataset with a single parameter</h1>
+    </header>
+    <main>
+        <article>
+            <p>Laurent Boué, “Real numbers, data science and chaos: How to fit any dataset with a single parameter,” arXiv preprint, 2019. <a href="https://arxiv.org/abs/1904.12320">Online Available</a></p>
+            <h1 id="要約">要約</h1>
+            <p>どんなモダリティのどんなデータも，以下の関数のパラメータ<span class="math inline">\(\alpha\)</span>を変えるだけで近似できる。<span class="math display">\[
+            f(\alpha) = \sin^2 (2^{x \tau} \arcsin \sqrt{\alpha})
+            \]</span>ここで <span class="math inline">\(x\)</span> は離散時刻，<span class="math inline">\(\tau\)</span> は精度パラメータ。</p>
+            <h1 id="原理">原理</h1>
+            <p>論文では音声と画像を例に挙げて，さまざまなデータが1つのパラメータ <span class="math inline">\(\alpha\)</span> だけで近似できる様子を示している。以下に大まかな原理を示す。</p>
+            <p>近似の前に，まずはデータを有限個の実数の列 <span class="math inline">\([x_1, x_2, \ldots, x_n]\)</span> として表現してやる。これは基本的にどんなデータでも可能である。音声データは離散時間上での振幅値の列とみなせるし，画像データも各ピクセルの色の値を左上のピクセルから順に並べていけば実数列として表現できる。さらにこの実数列を各値を最小値と最大値で正規化して， <span class="math inline">\(x_k\)</span> が単位区間上（0以上1未満）に値をとるようにしてやる。</p>
+            <p>こうして得られた実数列の各要素を <span class="math inline">\(\tau\)</span> ビットの固定小数点数で表現して，それらをひとつなぎに並べてしまえば，最終的にデータを <span class="math inline">\(n\tau\)</span> ビットの固定小数点数として表現できてしまう。イメージとしては，<span class="math inline">\([0.1234, 0.5678, \ldots, 0.9012]\)</span> という実数列があったとき，それらの小数部分を並べてひとつの数値 <span class="math inline">\(0.12345678\ldots9012\)</span> をつくる感じである。これが，任意のデータを1つのパラメータで近似できる原理である。</p>
+            <p>パラメータ <span class="math inline">\(\alpha_0\)</span> からは元のデータを復元することもできる。データの <span class="math inline">\(k\)</span> 番目の要素 <span class="math inline">\(x_k\)</span> を復元するには以下の式を使えばよい：<span class="math display">\[
+            x_k \approx \alpha_k = 2^{k\tau}\alpha_0 \mod 1
+            \]</span>この処理は，パラメータを <span class="math inline">\(k\tau\)</span> ビットだけシフトさせたあと1以上の数値を除くことをしている。この処理での近似誤差は，実数列を有限桁数にしたときの量子化誤差 <span class="math inline">\(2^{-\tau}\)</span> 未満である。</p>
+            <p>以上のようにしてデータからパラメータへの変換（エンコード）とパラメータからデータの復元（デコード）が実現できる。論文には疑似コードでの実装例も紹介している。</p>
+            <h1 id="連続かつ微分可能な関数での表現">連続かつ微分可能な関数での表現</h1>
+            <p>上記の方法は今風（深層学習の時代風？）じゃない。ということで，デコード部分を連続かつ微分可能な処理でできるように書き直す。邪魔なのは整数部分を切り捨てる <span class="math inline">\(\mathrm{mod}\)</span> の計算なので，これをどうにか連続な関数に置き換えたい。</p>
+            <p>そのために鍵になるのは以下の関数 <span class="math inline">\(\phi\)</span><span class="math display">\[
+            \phi(\alpha) = \sin^2 (2 \pi \alpha)
+            \]</span>とその逆関数 <span class="math inline">\(\phi^{-1}\)</span><span class="math display">\[
+            \phi^{-1}(z) = \frac{1}{2\pi} \arcsin \sqrt{z}
+            \]</span>である。これらの関数はいずれも連続かつ微分可能である。</p>
+            <p>具体的な処理を見ていく。まずはエンコード部分，すなわち実数列 <span class="math inline">\([x_0, \ldots, x_n]\)</span> をパラメータ <span class="math inline">\(z_0\)</span> に変換するところから。まずは実数列の各要素に <span class="math inline">\(\phi^{-1}\)</span> を適用してやる。そのあと，<span class="math inline">\([\phi^{-1}(x_0), \ldots, \phi^{-1}(x_n)]\)</span> の各要素 <span class="math inline">\(\phi^{-1}(x_k)\)</span> を <span class="math inline">\(\tau\)</span> ビットで近似してやる。それらをひと続きに並べて <span class="math inline">\(\alpha_0\)</span> としたら，さらに <span class="math inline">\(\phi\)</span> を適用して <span class="math inline">\(z_0 = \phi(\alpha_0)\)</span> を得る。こうして得られた <span class="math inline">\(z_0\)</span> がパラメータである。</p>
+            <p>続いてデコード部分。以下の処理をすればパラメータ <span class="math inline">\(z_0\)</span> からデータの要素 <span class="math inline">\(x_k\)</span> を復元できる：<span class="math display">\[
+            x_k \approx z_k = \sin^2 (2^{k \tau} \arcsin \sqrt{z_0})
+            \]</span>このとき近似誤差は <span class="math inline">\(\frac{\pi}{2^{\tau - 1}}\)</span> 未満である。さらに，この処理は連続かつ微分可能である。完！</p>
+            <h2 id="汎化能力">汎化能力</h2>
+            <p>するわけがない。今回の手法で得られるパラメータは単にデータを丸暗記しているだけで，汎化のようなものは期待できない。たとえば時系列に適用したとしても将来の予測には使えない。</p>
+            <p>一方で深層学習でも，ニューラルネットワーク（NN）はランダムなデータを学習できる（つまり丸暗記できる）ことが知られている。では，NNはどのくらいデータを丸暗記していて，どのくらい意味ある学習をしているのか？どうやって汎化的なことをしているのか？</p>
+            <h1 id="感想とか">感想とか</h1>
+            <ul>
+            <li>おもしろいネタ論文。パラメータの数が少なきゃいいってものではない。</li>
+            <li>やっぱ学習する上で重要なのは汎化だよねという気持ちになる。</li>
+            </ul>
+        </article>
+    </main>
+</body>
+</html>
