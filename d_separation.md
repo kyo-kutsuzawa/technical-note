@@ -1,6 +1,6 @@
 # 概要
 
-Graphical modelにおいて経路がブロックされるのは以下の３つのとき：
+Graphical modelにおいて経路がブロックされるのは以下の３つのとき(*Bishop and Nasser, 2006*)：
 
 1. ノードが観測済でhead-to-tailである。
 ![head-to-tail observed](d_separation/head2tail_observed.svg)
@@ -10,3 +10,7 @@ Graphical modelにおいて経路がブロックされるのは以下の３つ�
 ![head-to-head non-observed for all descendants](d_separation/head2head_descendants.svg)
 
 2つのノードの間にあるすべての経路がブロックされていれば，その2つは条件付き独立となる。
+
+# 参考文献
+
+1. C. M. Bishop and M. N. Nasser, "Pattern recognition and machine learning," Springer, 2006.

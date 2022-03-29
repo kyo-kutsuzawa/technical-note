@@ -14,13 +14,17 @@
     <main>
         <article>
             <h1 id="概要">概要</h1>
-            <p>Graphical modelにおいて経路がブロックされるのは以下の３つのとき：</p>
+            <p>Graphical modelにおいて経路がブロックされるのは以下の３つのとき(<em>Bishop and Nasser, 2006</em>)：</p>
             <ol type="1">
             <li>ノードが観測済でhead-to-tailである。<br><img src="d_separation/head2tail_observed.svg" alt="head-to-tail observed" /></li>
             <li>ノードが観測済でhead-to-headである。<br><img src="d_separation/tail2tail_observed.svg" alt="head-to-tail observed" /></li>
             <li>ノードがhead-to-headで，自身もその子孫すべても未観測である。<br><img src="d_separation/head2head_descendants.svg" alt="head-to-head non-observed for all descendants" /></li>
             </ol>
             <p>2つのノードの間にあるすべての経路がブロックされていれば，その2つは条件付き独立となる。</p>
+            <h1 id="参考文献">参考文献</h1>
+            <ol type="1">
+            <li>C. M. Bishop and M. N. Nasser, “Pattern recognition and machine learning,” Springer, 2006.</li>
+            </ol>
         </article>
     </main>
 </body>
