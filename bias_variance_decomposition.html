@@ -99,14 +99,8 @@
             \]</span>となる。このうち第3項を元の期待値の式に入れると，<span class="math display">\[
             \begin{aligned}
             &amp; \mathbb{E}_{\mathcal{D}} [\{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \} \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \mathbb{E}_t[t| \boldsymbol{x}] \}] \\
-            =&amp; \mathbb{E}_{\mathcal{D}} [y(\boldsymbol{x}; \mathcal{D}) \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})]
-            - \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \}^2
-            - y(\boldsymbol{x}; \mathcal{D}) \mathbb{E}_t[t| \boldsymbol{x}]
-            + \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_t[t| \boldsymbol{x}]\\
-            =&amp; \mathbb{E}_{\mathcal{D}} [y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})]
-            - \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \}^2
-            - \mathbb{E}_{\mathcal{D}} [y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_t[t| \boldsymbol{x}]
-            + \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_t[t| \boldsymbol{x}]\\
+            =&amp; \mathbb{E}_{\mathcal{D}} [y(\boldsymbol{x}; \mathcal{D}) \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \}^2 - y(\boldsymbol{x}; \mathcal{D}) \mathbb{E}_t[t| \boldsymbol{x}] + \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_t[t| \boldsymbol{x}]\\
+            =&amp; \mathbb{E}_{\mathcal{D}} [y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \}^2 - \mathbb{E}_{\mathcal{D}} [y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_t[t| \boldsymbol{x}] + \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_t[t| \boldsymbol{x}]\\
             =&amp; 0
             \end{aligned}
             \]</span>となって消える。よって得られた。</p>

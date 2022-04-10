@@ -150,14 +150,8 @@ $$
 $$
 \begin{aligned}
 & \mathbb{E}_{\mathcal{D}} [\{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \} \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \mathbb{E}_t[t| \boldsymbol{x}] \}] \\
-=& \mathbb{E}_{\mathcal{D}} [y(\boldsymbol{x}; \mathcal{D}) \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})]
-- \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \}^2
-- y(\boldsymbol{x}; \mathcal{D}) \mathbb{E}_t[t| \boldsymbol{x}]
-+ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_t[t| \boldsymbol{x}]\\
-=& \mathbb{E}_{\mathcal{D}} [y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})]
-- \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \}^2
-- \mathbb{E}_{\mathcal{D}} [y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_t[t| \boldsymbol{x}]
-+ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_t[t| \boldsymbol{x}]\\
+=& \mathbb{E}_{\mathcal{D}} [y(\boldsymbol{x}; \mathcal{D}) \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \}^2 - y(\boldsymbol{x}; \mathcal{D}) \mathbb{E}_t[t| \boldsymbol{x}] + \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_t[t| \boldsymbol{x}]\\
+=& \mathbb{E}_{\mathcal{D}} [y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \}^2 - \mathbb{E}_{\mathcal{D}} [y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_t[t| \boldsymbol{x}] + \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_t[t| \boldsymbol{x}]\\
 =& 0
 \end{aligned}
 $$
