@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bias-Variance分解</title>
+<link href="mystyle.css" rel="stylesheet" type="text/css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+</head>
+<body>
+    <header id="home">
+        <h1>Bias-Variance分解</h1>
+    </header>
+    <main>
+        <article>
+            <h1 id="概要">概要</h1>
+            <ul>
+            <li>回帰モデルの二乗誤差は一般的に，1) 望ましい入出力関係からのずれ（bias），2) データセットによる出力のばらつき（variance），3) 推定不可能なノイズ（noise），の3つの要素の和に分解できる。</li>
+            </ul>
+            <h1 id="bias-variance分解">Bias-Variance分解</h1>
+            <h2 id="背景">背景</h2>
+            <p>入力<span class="math inline">\(\boldsymbol{x}\)</span>に対して出力<span class="math inline">\(t\)</span>を予測するような問題を考える。ここで，入出力の変数は以下のように適当な確率分布に従うとする。<span class="math display">\[
+            (\boldsymbol{x}, t) \sim p(\boldsymbol{x}, t)
+            \]</span><span class="math inline">\(p(\boldsymbol{x}, t)\)</span>はふつうわからないので，代わりに有限な大きさのデータセット<span class="math inline">\(\mathcal{D}\)</span>をもとに回帰モデル<span class="math inline">\(y(\boldsymbol{x}; \mathcal{D})\)</span>を得たとする。<span class="math display">\[
+            t \approx y(\boldsymbol{x}; \mathcal{D})
+            \]</span>そしてこのモデルの性能を以下のような二乗誤差で測る。<span class="math display">\[
+            L(t, y(\boldsymbol{x}; \mathcal{D})) = \{ y(\boldsymbol{x}; \mathcal{D}) - t \}^2
+            \]</span>機械学習の最終的な目標は，未知のデータも含めた二乗誤差の期待値を最小化することである。すなわち，以下の式の値を最小化することが目標である。<span class="math display">\[
+            \begin{aligned}
+            \mathbb{E}_{(\boldsymbol{x}, t) \sim p(\boldsymbol{x}, t)}[L(t, y(\boldsymbol{x}; \mathcal{D}))] &amp;= \iint L(t, y(\boldsymbol{x}; \mathcal{D})) p(\boldsymbol{x}, t) \mathrm{d}\boldsymbol{x} \mathrm{d}t\\
+            &amp;= \iint \{ y(\boldsymbol{x}; \mathcal{D}) - t \}^2 p(\boldsymbol{x}, t) \mathrm{d}\boldsymbol{x} \mathrm{d}t \quad \text{(1)}
+            \end{aligned}
+            \]</span>この式がより詳細にどのような要素で構成されるのかを知ることは，回帰モデルの設計などをおこなう上で重要である。そこで以降では，この期待値の数式を分解していく。</p>
+            <h2 id="ノイズ成分の分離">ノイズ成分の分離</h2>
+            <p>未知のデータが確率的に生成される場合，一般的には予測を正確におこなうことはできない。よって，まずは二乗誤差の期待値を予測できる要素と予測できない要素に分解していく。そのために，ある入力<span class="math inline">\(\boldsymbol{x}\)</span>に対する出力の期待値を以下のように導入する。<span class="math display">\[
+            \mathbb{E}_t[t| \boldsymbol{x}] \triangleq \int t p(t| \boldsymbol{x}) \mathrm{d}t
+            \]</span>すると，二乗誤差の期待値は以下のように分解できる。<span class="math display">\[
+            \begin{aligned}
+            \mathbb{E}_{(\boldsymbol{x}, t) \sim p(\boldsymbol{x}, t)}[L(t, y(\boldsymbol{x}; \mathcal{D}))] &amp;= \iint \{ y(\boldsymbol{x}; \mathcal{D}) - t \}^2 p(\boldsymbol{x}, t) \mathrm{d}\boldsymbol{x} \mathrm{d}t\\
+            &amp;= \int \{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_t[t| \boldsymbol{x}] \}^2 p(\boldsymbol{x}) \mathrm{d}\boldsymbol{x} + \iint \{ \mathbb{E}_t[t| \boldsymbol{x}] - t \}^2 p(\boldsymbol{x}, t) \mathrm{d}\boldsymbol{x} \mathrm{d}t \quad \text{(2)}
+            \end{aligned}
+            \]</span></p>
+            <p>上式の分解のうち，モデルを調整して小さくできるのは第1項だけである。第2項は<span class="math inline">\(y(\boldsymbol{x}; \mathcal{D})\)</span>を含まないのでモデルをどう調整しても値を変化させることができない。つまり第2項は，<strong>推定不可能なノイズによる誤差</strong>に対応する。</p>
+            <h2 id="biasとvarianceの分離">BiasとVarianceの分離</h2>
+            <p>続いて，予測可能な誤差に相当する式(2)第1項について考える。この項は<span class="math inline">\(y(\boldsymbol{x}; \mathcal{D}) \equiv \mathbb{E}_t[t| \boldsymbol{x}]\)</span>のときに値がゼロになる。よって，モデルの理想的な出力は<span class="math display">\[
+            y(\boldsymbol{x}; \mathcal{D}) = \mathbb{E}_t[t| \boldsymbol{x}] = \int t p(t| \boldsymbol{x}) \mathrm{d}t
+            \]</span>となる（すなわち，このときに二乗誤差が最小となる）。データが無限にある場合は，モデルは<span class="math inline">\(\mathbb{E}_t[t| \boldsymbol{x}]\)</span>を任意の精度で近似できて，完璧な予測が可能である。しかし実際には有限のデータセット<span class="math inline">\(\mathcal{D}\)</span>しか与えられない。このことによって誤差が残ってしまう。</p>
+            <p>そこで今度は，データセットが有限のときに二乗誤差がどのような要素で構成されるかを考える。式(2)第1項の積分の中身について，データセットについての期待値をとると以下のようになる。<span class="math display">\[
+            \mathbb{E}_{\mathcal{D}}[\{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_t[t| \boldsymbol{x}] \}^2] = \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \mathbb{E}_t[t| \boldsymbol{x}] \}^2 + \mathbb{E}_{\mathcal{D}}[\{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \}^2] \quad \text{(3)}
+            \]</span>上式の第1項は望ましい入出力関係<span class="math inline">\(\mathbb{E}_t[t| \boldsymbol{x}]\)</span>からのずれ，すなわち<strong>bias</strong>を表す。一方で第2項はデータセットによる<span class="math inline">\(y(\boldsymbol{x}; \mathcal{D})\)</span>の違いの度合い，すなわち<strong>variance</strong>を表す。varianceはデータセットに対する鋭敏性とも解釈できる。</p>
+            <p>よって最終的に，二乗誤差の期待値はおおむね以下のように分解できる。<span class="math display">\[
+            \text{expected loss} = (\text{bias term})^2 + \text{variance term} + \text{noise term}
+            \]</span></p>
+            <h1 id="議論">議論</h1>
+            <p>bias-variance分解の導出はおおまかに以下のような流れになる。</p>
+            <ol type="1">
+            <li>まず二乗誤差の期待値を定式化する。</li>
+            <li>期待値の積分の中で<span class="math inline">\((\mathbb{E}_t[t| \boldsymbol{x}] - \mathbb{E}_t[t| \boldsymbol{x}])\)</span>を錬成して展開することで，noise項を単離できる。</li>
+            <li>残った項について，積分の中で<span class="math inline">\((\mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})])\)</span>を錬成して<span class="math inline">\(\mathcal{D}\)</span>についての期待値をとることで，bias項とvariance項とに分解できる。</li>
+            </ol>
+            <h1 id="細かい導出">細かい導出</h1>
+            <p>まずは<span class="math display">\[
+            \begin{aligned}
+            \mathbb{E}_{(\boldsymbol{x}, t) \sim p(\boldsymbol{x}, t)}[L(t, y(\boldsymbol{x}; \mathcal{D}))] &amp;= \iint \{ y(\boldsymbol{x}; \mathcal{D}) - t \}^2 p(\boldsymbol{x}, t) \mathrm{d}\boldsymbol{x} \mathrm{d}t\\
+            &amp;= \int \{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_t[t| \boldsymbol{x}] \}^2 p(\boldsymbol{x}) \mathrm{d}\boldsymbol{x} + \iint \{ \mathbb{E}_t[t| \boldsymbol{x}] - t \}^2 p(\boldsymbol{x}, t) \mathrm{d}\boldsymbol{x} \mathrm{d}t
+            \end{aligned}
+            \]</span>について。おおざっぱには，二乗の項の中で<span class="math inline">\((-\mathbb{E}_t[t| \boldsymbol{x}] + \mathbb{E}_t[t| \boldsymbol{x}])\)</span>を生成して展開することでcross-termが消えて得られる。詳しく述べる。1行目右辺の積分の中身は<span class="math display">\[
+            \begin{aligned}
+            \{ y(\boldsymbol{x}; \mathcal{D}) - t \}^2
+            &amp;= \{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_t[t| \boldsymbol{x}] + \mathbb{E}_t[t| \boldsymbol{x}] - t \}^2\\
+            &amp;= \{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_t[t| \boldsymbol{x}] \}^2 + \{ \mathbb{E}_t[t| \boldsymbol{x}] - t \}^2 - 2 \{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_t[t| \boldsymbol{x}] \} \{ \mathbb{E}_t[t| \boldsymbol{x}] - t \}
+            \end{aligned}
+            \]</span>と分解できる。このとき上式の第1項を元の積分に入れると<span class="math display">\[
+            \begin{aligned}
+            \iint \{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_t[t| \boldsymbol{x}] \}^2 p(\boldsymbol{x}, t) \mathrm{d}\boldsymbol{x} \mathrm{d}t &amp;= \int \{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_t[t| \boldsymbol{x}] \}^2 \int p(\boldsymbol{x}, t) \mathrm{d}t \mathrm{d}\boldsymbol{x}\\
+            &amp;= \int \{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_t[t| \boldsymbol{x}] \}^2 p(\boldsymbol{x}) \mathrm{d}\boldsymbol{x}
+            \end{aligned}
+            \]</span>となり，第3項を元の積分に入れると<span class="math display">\[
+            \begin{aligned}
+            &amp;\iint \{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_t[t| \boldsymbol{x}] \} \{ \mathbb{E}_t[t| \boldsymbol{x}] - t \} p(\boldsymbol{x}, t) \mathrm{d}\boldsymbol{x} \mathrm{d}t\\
+            =&amp; \iint \{ -t y(\boldsymbol{x}; \mathcal{D}) - (\mathbb{E}_t[t| \boldsymbol{x}])^2 + y(\boldsymbol{x}; \mathcal{D}) \mathbb{E}_t[t| \boldsymbol{x}] + t \mathbb{E}_t[t| \boldsymbol{x}] \} p(\boldsymbol{x}, t) \mathrm{d}\boldsymbol{x} \mathrm{d}t\\
+            =&amp; -\iint t y(\boldsymbol{x}; \mathcal{D}) p(\boldsymbol{x}, t) \mathrm{d}\boldsymbol{x} \mathrm{d}t - \iint (\mathbb{E}_t[t| \boldsymbol{x}])^2 p(\boldsymbol{x}, t) \mathrm{d}\boldsymbol{x} \mathrm{d}t\\
+            &amp;+ \iint y(\boldsymbol{x}; \mathcal{D}) \mathbb{E}_t[t| \boldsymbol{x}] p(\boldsymbol{x}, t) \mathrm{d}\boldsymbol{x} \mathrm{d}t + \iint t \mathbb{E}_t[t| \boldsymbol{x}] p(\boldsymbol{x}, t) \mathrm{d}\boldsymbol{x} \mathrm{d}t\\
+            =&amp; - \int t p(t| \boldsymbol{x}) \mathrm{d}t \int y(\boldsymbol{x}; \mathcal{D}) p(\boldsymbol{x}) \mathrm{d}\boldsymbol{x} - (\mathbb{E}_t[t| \boldsymbol{x}])^2 \iint p(\boldsymbol{x}, t) \mathrm{d}\boldsymbol{x} \mathrm{d}t\\
+            &amp;+ \mathbb{E}_t[t| \boldsymbol{x}] \int y(\boldsymbol{x}; \mathcal{D}) p(\boldsymbol{x}) \mathrm{d}\boldsymbol{x} \int p(t| \boldsymbol{x}) \mathrm{d}t + \mathbb{E}_t[t| \boldsymbol{x}] \int p(\boldsymbol{x}) \mathrm{d}\boldsymbol{x} \int t p(t| \boldsymbol{x}) \mathrm{d}t\\
+            =&amp; - \mathbb{E}_t[t| \boldsymbol{x}] \mathbb{E}_{\boldsymbol{x}} [y(\boldsymbol{x}; \mathcal{D})] - (\mathbb{E}_t[t| \boldsymbol{x}])^2 + \mathbb{E}_t[t| \boldsymbol{x}] \mathbb{E}_{\boldsymbol{x}} [y(\boldsymbol{x}; \mathcal{D})] + \mathbb{E}_t[t| \boldsymbol{x}] \mathbb{E}_t[t| \boldsymbol{x}]\\
+            =&amp; 0
+            \end{aligned}
+            \]</span>となる。よって得られた。</p>
+            <p>続いて<span class="math display">\[
+            \mathbb{E}_{\mathcal{D}}[\{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_t[t| \boldsymbol{x}] \}^2] = \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \mathbb{E}_t[t| \boldsymbol{x}] \}^2 + \mathbb{E}_{\mathcal{D}}[\{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \}^2]
+            \]</span>について。おおざっぱには，二乗の項の中で<span class="math inline">\((-\mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] + \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})])\)</span>を生成して展開することでcross-termが消えて得られる。詳しく述べる。期待値の中身は<span class="math display">\[
+            \begin{aligned}
+            &amp;\{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_t[t| \boldsymbol{x}] \}^2\\
+            =&amp; \{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] + \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \mathbb{E}_t[t| \boldsymbol{x}] \}^2\\
+            =&amp; \{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \}^2 + \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \mathbb{E}_t[t| \boldsymbol{x}] \}^2\\
+            &amp;+ 2 \{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \} \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \mathbb{E}_t[t| \boldsymbol{x}] \}
+            \end{aligned}
+            \]</span>となる。このうち第3項を元の期待値の式に入れると，<span class="math display">\[
+            \begin{aligned}
+            &amp; \mathbb{E}_{\mathcal{D}} [\{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \} \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \mathbb{E}_t[t| \boldsymbol{x}] \}] \\
+            =&amp; \mathbb{E}_{\mathcal{D}} [y(\boldsymbol{x}; \mathcal{D}) \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})]
+            - \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \}^2
+            - y(\boldsymbol{x}; \mathcal{D}) \mathbb{E}_t[t| \boldsymbol{x}]
+            + \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_t[t| \boldsymbol{x}]\\
+            =&amp; \mathbb{E}_{\mathcal{D}} [y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})]
+            - \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \}^2
+            - \mathbb{E}_{\mathcal{D}} [y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_t[t| \boldsymbol{x}]
+            + \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \mathbb{E}_t[t| \boldsymbol{x}]\\
+            =&amp; 0
+            \end{aligned}
+            \]</span>となって消える。よって得られた。</p>
+        </article>
+    </main>
+</body>
+</html>
