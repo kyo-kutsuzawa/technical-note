@@ -19,8 +19,8 @@ $$
 $$
 L(t, y(\boldsymbol{x}; \mathcal{D})) = \{ y(\boldsymbol{x}; \mathcal{D}) - t \}^2
 $$
-機械学習の最終的な目標は，未知のデータも含めた二乗誤差の期待値を最小化することである。
-すなわち，以下の式の値を最小化することが目標である。
+ここで学習の目標を，未知のデータも含めた二乗誤差の期待値を最小化することとする。
+すなわち，以下の式の値の最小化を目標とする。
 $$
 \begin{aligned}
 \mathbb{E}_{(\boldsymbol{x}, t) \sim p(\boldsymbol{x}, t)}[L(t, y(\boldsymbol{x}; \mathcal{D}))] &= \iint L(t, y(\boldsymbol{x}; \mathcal{D})) p(\boldsymbol{x}, t) \mathrm{d}\boldsymbol{x} \mathrm{d}t\\
