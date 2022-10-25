@@ -16,11 +16,11 @@
         <li><a href="#要約">要約</a></li>
         <li><a href="#基礎知識">基礎知識</a>
         <ul>
-        <li><a href="#imitation-learning-模倣学習">Imitation learning （模倣学習）</a></li>
-        <li><a href="#behavior-cloning-行動クローニング">Behavior cloning （行動クローニング）</a></li>
-        <li><a href="#reinforcement-learning-rl強化学習">Reinforcement learning （RL，強化学習）</a></li>
-        <li><a href="#inverse-reinforcement-learning-irl逆強化学習">Inverse reinforcement learning （IRL，逆強化学習）</a></li>
-        <li><a href="#generative-adversarial-networks-gan敵対的生成ネットワーク">Generative adversarial networks （GAN，敵対的生成ネットワーク）</a></li>
+        <li><a href="#模倣学習">模倣学習</a></li>
+        <li><a href="#行動クローニング">行動クローニング</a></li>
+        <li><a href="#強化学習">強化学習</a></li>
+        <li><a href="#逆強化学習">逆強化学習</a></li>
+        <li><a href="#敵対的生成ネットワーク">敵対的生成ネットワーク</a></li>
         </ul></li>
         <li><a href="#generative-adversarial-imitation-learning-gail">Generative adversarial imitation learning (GAIL)</a>
         <ul>
@@ -38,18 +38,18 @@
             <p>強化学習と逆強化学習とを統一する定式化をおこなったら，敵対的生成ネットワークと似た形の模倣学習手法が導出できた。</p>
             <h1 id="基礎知識">基礎知識</h1>
             <p>まずは研究の背景となる基礎知識から。</p>
-            <h2 id="imitation-learning-模倣学習">Imitation learning （模倣学習）</h2>
+            <h2 id="模倣学習">模倣学習</h2>
             <p>熟練者の動作データが与えられた状態で，それを<strong>模倣するように動作を学習</strong>する手法の総称。以下では基本的に，熟練者（<span class="math inline">\(\pi_E\)</span>）が環境から状態<span class="math inline">\(s\)</span>を受け取って行動<span class="math inline">\(a\)</span>を出力する状況を考える。</p>
             <figure>
             <img src="gail_img/1d6eb26c93ac2737317f4aa8101a9cf2.png" alt="Imitation learning" /><figcaption aria-hidden="true">Imitation learning</figcaption>
             </figure>
-            <h2 id="behavior-cloning-行動クローニング">Behavior cloning （行動クローニング）</h2>
+            <h2 id="行動クローニング">行動クローニング</h2>
             <p>熟練者の行動データを教師データとして<strong>教師あり学習</strong>する手法。熟練者がある状態<span class="math inline">\(s\)</span>である行動<span class="math inline">\(a\)</span>をしたというデータの組<span class="math inline">\((s, a)\)</span>がたくさんあるとして，<span class="math inline">\(\pi: s \mapsto a\)</span>を訓練する。</p>
             <figure>
             <img src="gail_img/10948c6870929a79cbe6678a455e3096.png" alt="Behavior cloning" /><figcaption aria-hidden="true">Behavior cloning</figcaption>
             </figure>
             <p>この方法は教師あり学習なので学習させやすいし，環境とのインタラクションがないので非常にお手軽。しかし学習後は環境とインタラクションすることから<strong>学習前後でタスクが変わる</strong>ことになり（分布シフト），そのせいで性能劣化が避けられないのが本質的な課題である。</p>
-            <h2 id="reinforcement-learning-rl強化学習">Reinforcement learning （RL，強化学習）</h2>
+            <h2 id="強化学習">強化学習</h2>
             <p>環境とインタラクションしながら，累計コスト<span class="math inline">\(c(s, a) = \sum_{t=0}^\infty \gamma^t c(s_t, a_t)\)</span>を最小化する方策（状態<span class="math inline">\(s_t\)</span>をもとに行動<span class="math inline">\(a_t\)</span>を生成するもの）を得る手法の総称。つまり，<strong>コストが与えられる状況で最良の方策を得る</strong>のがゴール。</p>
             <figure>
             <img src="gail_img/c35c66f23ae1e2cd9ece0157ef98b75d.png" alt="Reinforcement learning" /><figcaption aria-hidden="true">Reinforcement learning</figcaption>
@@ -57,7 +57,7 @@
             <p>環境とインタラクションしながら学習するのでbehavior cloningのような分布シフトの問題は起きない。しかし学習には手間と時間がたくさん必要だし，コスト関数の設計が難しいことも多い。なお，論文では以下に示すmaximum causal entropy RLが扱われている。<span class="math display">\[
             \mathrm{arg}\min_\pi -H(\pi) + \mathbb{E}_{\pi} \lbrack c(s, a)\rbrack
             \]</span>ここで<span class="math inline">\(H(\pi) \equiv \mathbb{E}_\pi \lbrack -\log \pi (a|s) \rbrack\)</span>はγ-discounted causal entropy（因果的エントロピー）と呼ばれる値。</p>
-            <h2 id="inverse-reinforcement-learning-irl逆強化学習">Inverse reinforcement learning （IRL，逆強化学習）</h2>
+            <h2 id="逆強化学習">逆強化学習</h2>
             <p>強化学習の逆をやる手法。<strong>熟練者が最小化するようなコスト関数を推定する</strong>のがゴール。もともとはbehavior cloningの悪い点を改善するために提案された手法なので，コスト関数を得る手法ではあるものの，多くの場合その後に良い方策を得ることを想定している。</p>
             <figure>
             <img src="gail_img/78facd6439e78420893a35d38fa9d904.png" alt="Inverse reinforcement learning" /><figcaption aria-hidden="true">Inverse reinforcement learning</figcaption>
@@ -66,7 +66,7 @@
             \mathrm{maximize}_{c} \left( \min_\pi -H(\pi) + \mathbb{E}_{\pi} \lbrack c(s, a)\rbrack \right) - \mathbb{E}_{\pi_E}\lbrack c(s, a)\rbrack
             \]</span>この定式化においては，熟練者<span class="math inline">\(\pi_E\)</span>に対しては小さい値をとり，その他の方策<span class="math inline">\(\pi\)</span>に対しては大きい値をとるようなコスト関数を求める。</p>
             <p>逆強化学習を使って模倣学習すると，反復処理の中に強化学習を含むことになるので計算がとても大変。しかも最終的にやりたいことは熟練者の行動を模倣することなのに，<strong>わざわざコスト関数の推定を経由するのは遠回り</strong>な気がしないだろうか……？ （コスト関数そのものは，学習者がどんな行動をすべきかという情報は与えてくれない！）</p>
-            <h2 id="generative-adversarial-networks-gan敵対的生成ネットワーク">Generative adversarial networks （GAN，敵対的生成ネットワーク）</h2>
+            <h2 id="敵対的生成ネットワーク">敵対的生成ネットワーク</h2>
             <p>データを生成するモデル（generator）とデータの真偽を識別するモデル（discriminator）とを同時に学習させることで，<strong>訓練データとよく似たデータを生成させる</strong>モデル。すっっごく本物っぽいデータが生成できる（たとえば <em><a href="https://arxiv.org/abs/1809.11096">A. Brock et al., ICLR 2019.</a></em> とか参照）。GAILの基となる手法だが，GAN自体は模倣学習と関係ない。</p>
             <figure>
             <img src="gail_img/b832880959c09a91661873b869a02b23.png" alt="Generative adversarial networks" /><figcaption aria-hidden="true">Generative adversarial networks</figcaption>
