@@ -1,6 +1,7 @@
 # 概要
 
 - 回帰モデルの二乗誤差は一般的に，1) 望ましい入出力関係からのずれ（bias），2) データセットによる出力のばらつき（variance），3) 推定不可能なノイズ（noise），の3つの要素の和に分解できる。
+- このうちbiasとvarianceは、データセットが有限であることによって生じる。
 
 # Bias-Variance分解
 
@@ -60,7 +61,7 @@ y(\boldsymbol{x}; \mathcal{D}) = \mathbb{E}_t[t| \boldsymbol{x}] = \int t p(t| \
 $$
 となる（すなわち，このときに二乗誤差が最小となる）。
 データが無限にある場合は，モデルは$\mathbb{E}_t[t| \boldsymbol{x}]$を任意の精度で近似できて，完璧な予測が可能である。
-しかし実際には有限のデータセット$\mathcal{D}$しか与えられない。
+しかし実際には**有限のデータセット$\mathcal{D}$しか与えられない**。
 このことによって誤差が残ってしまう。
 
 そこで今度は，データセットが有限のときに二乗誤差がどのような要素で構成されるかを考える。
@@ -84,6 +85,8 @@ bias-variance分解の導出はおおまかに以下のような流れになる�
 1. まず二乗誤差の期待値を定式化する。
 2. 期待値の積分の中で$(\mathbb{E}_t[t| \boldsymbol{x}] - \mathbb{E}_t[t| \boldsymbol{x}])$を錬成して展開することで，noise項を単離できる。
 3. 残った項について，積分の中で$(\mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})])$を錬成して$\mathcal{D}$についての期待値をとることで，bias項とvariance項とに分解できる。
+
+biasとvarianceは、有限のデータセットからではデータの期待値$\mathbb{E}_t[t| \boldsymbol{x}]$を完璧に予測できないことに起因する。
 
 # 細かい導出
 

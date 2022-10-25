@@ -11,11 +11,25 @@
     <header id="home">
         <h1>Bias-Variance分解</h1>
     </header>
+    <nav>
+        <ul>
+        <li><a href="#概要">概要</a></li>
+        <li><a href="#bias-variance分解">Bias-Variance分解</a>
+        <ul>
+        <li><a href="#背景">背景</a></li>
+        <li><a href="#ノイズ成分の分離">ノイズ成分の分離</a></li>
+        <li><a href="#biasとvarianceの分離">BiasとVarianceの分離</a></li>
+        </ul></li>
+        <li><a href="#議論">議論</a></li>
+        <li><a href="#細かい導出">細かい導出</a></li>
+        </ul>
+    </nav>
     <main>
         <article>
             <h1 id="概要">概要</h1>
             <ul>
             <li>回帰モデルの二乗誤差は一般的に，1) 望ましい入出力関係からのずれ（bias），2) データセットによる出力のばらつき（variance），3) 推定不可能なノイズ（noise），の3つの要素の和に分解できる。</li>
+            <li>このうちbiasとvarianceは、データセットが有限であることによって生じる。</li>
             </ul>
             <h1 id="bias-variance分解">Bias-Variance分解</h1>
             <h2 id="背景">背景</h2>
@@ -44,7 +58,7 @@
             <h2 id="biasとvarianceの分離">BiasとVarianceの分離</h2>
             <p>続いて，予測可能な誤差に相当する式(2)第1項について考える。この項は<span class="math inline">\(y(\boldsymbol{x}; \mathcal{D}) \equiv \mathbb{E}_t[t| \boldsymbol{x}]\)</span>のときに値がゼロになる。よって，モデルの理想的な出力は<span class="math display">\[
             y(\boldsymbol{x}; \mathcal{D}) = \mathbb{E}_t[t| \boldsymbol{x}] = \int t p(t| \boldsymbol{x}) \mathrm{d}t
-            \]</span>となる（すなわち，このときに二乗誤差が最小となる）。データが無限にある場合は，モデルは<span class="math inline">\(\mathbb{E}_t[t| \boldsymbol{x}]\)</span>を任意の精度で近似できて，完璧な予測が可能である。しかし実際には有限のデータセット<span class="math inline">\(\mathcal{D}\)</span>しか与えられない。このことによって誤差が残ってしまう。</p>
+            \]</span>となる（すなわち，このときに二乗誤差が最小となる）。データが無限にある場合は，モデルは<span class="math inline">\(\mathbb{E}_t[t| \boldsymbol{x}]\)</span>を任意の精度で近似できて，完璧な予測が可能である。しかし実際には<strong>有限のデータセット<span class="math inline">\(\mathcal{D}\)</span>しか与えられない</strong>。このことによって誤差が残ってしまう。</p>
             <p>そこで今度は，データセットが有限のときに二乗誤差がどのような要素で構成されるかを考える。式(2)第1項の積分の中身について，データセットについての期待値をとると以下のようになる。<span class="math display">\[
             \mathbb{E}_{\mathcal{D}}[\{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_t[t| \boldsymbol{x}] \}^2] = \{ \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \mathbb{E}_t[t| \boldsymbol{x}] \}^2 + \mathbb{E}_{\mathcal{D}}[\{ y(\boldsymbol{x}; \mathcal{D}) - \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] \}^2] \quad \text{(3)}
             \]</span>上式の第1項は望ましい入出力関係<span class="math inline">\(\mathbb{E}_t[t| \boldsymbol{x}]\)</span>からのずれ，すなわち<strong>bias</strong>を表す。一方で第2項はデータセットによる<span class="math inline">\(y(\boldsymbol{x}; \mathcal{D})\)</span>の違いの度合い，すなわち<strong>variance</strong>を表す。varianceはデータセットに対する鋭敏性とも解釈できる。</p>
@@ -58,6 +72,7 @@
             <li>期待値の積分の中で<span class="math inline">\((\mathbb{E}_t[t| \boldsymbol{x}] - \mathbb{E}_t[t| \boldsymbol{x}])\)</span>を錬成して展開することで，noise項を単離できる。</li>
             <li>残った項について，積分の中で<span class="math inline">\((\mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})] - \mathbb{E}_{\mathcal{D}}[y(\boldsymbol{x}; \mathcal{D})])\)</span>を錬成して<span class="math inline">\(\mathcal{D}\)</span>についての期待値をとることで，bias項とvariance項とに分解できる。</li>
             </ol>
+            <p>biasとvarianceは、有限のデータセットからではデータの期待値<span class="math inline">\(\mathbb{E}_t[t| \boldsymbol{x}]\)</span>を完璧に予測できないことに起因する。</p>
             <h1 id="細かい導出">細かい導出</h1>
             <p>まずは<span class="math display">\[
             \begin{aligned}
