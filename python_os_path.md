@@ -1,3 +1,7 @@
+---
+title: Python os.path の関数
+---
+
 # 概要
 
 `os.path`の関数

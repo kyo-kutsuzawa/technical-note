@@ -1,3 +1,7 @@
+---
+title: Dynamic Locomotion in the MIT Cheetah 3 Through Convex Model-Predictive Control
+---
+
 Jared Di Carlo, Patrick M. Wensing, Benjamin Katz, Gerardo Bledt, and Sangbae Kim, "Dynamic Locomotion in the MIT Cheetah 3 Through Convex Model-Predictive Control," in Proceedings of 2018 IEEE/RSJ International Conference on Intelligent Robots and Systems, 2018, pp. 1--9. [Online Available](https://ieeexplore.ieee.org/document/8594448)
 
 # 要約

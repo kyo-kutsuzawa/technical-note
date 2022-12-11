@@ -1,3 +1,7 @@
+---
+title: Generative Adversarial Imitation Learning
+---
+
 Jonathan Ho and Stefano Ermon, "Generative Adversarial Imitation Learning," in Advances in Neural Information Processing Systems, 2016, pp. 4565-4573. [Online Available](https://papers.nips.cc/paper/2016/hash/cc7e2b878868cbae992d1fb743995d8f-Abstract.html)
 
 # 要約
