@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>カルマンフィルタの導出</title>
+<link href="mystyle.css" rel="stylesheet" type="text/css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+</head>
+<body>
+    <header id="home">
+        <h1>カルマンフィルタの導出</h1>
+    </header>
+    <nav>
+        <ul>
+        <li><a href="#概要">概要</a></li>
+        <li><a href="#背景">背景</a></li>
+        <li><a href="#カルマンフィルタのアルゴリズム">カルマンフィルタのアルゴリズム</a></li>
+        <li><a href="#確率モデルの定式化">確率モデルの定式化</a></li>
+        <li><a href="#一般的な推定手続きの導出">一般的な推定手続きの導出</a>
+        <ul>
+        <li><a href="#予測ステップの導出">予測ステップの導出</a></li>
+        <li><a href="#更新ステップの導出">更新ステップの導出</a></li>
+        </ul></li>
+        <li><a href="#カルマンフィルタの導出">カルマンフィルタの導出</a>
+        <ul>
+        <li><a href="#予測ステップの導出-1">予測ステップの導出</a></li>
+        <li><a href="#更新ステップの導出-1">更新ステップの導出</a></li>
+        </ul></li>
+        <li><a href="#まとめ">まとめ</a></li>
+        <li><a href="#参考文献">参考文献</a></li>
+        </ul>
+    </nav>
+    <main>
+        <article>
+            <h1 id="概要">概要</h1>
+            <ul>
+            <li>カルマンフィルタは、観測値から状態変数を逐次推定するためによく使われる技術である。</li>
+            <li>制御分野においては推定誤差の最小化に基づいて導出されることが多いが、一般的な確率的推論の特殊例として導出することも可能である。</li>
+            <li>ベイズフィルタ（状態変数の確率分布を逐次的に求める手続き）に系の動的モデルを代入することで、カルマンフィルタに対応する推定手続きが得られる。途中計算はかなりややこしいが、最終的にはきれいな形に行きつく。</li>
+            </ul>
+            <h1 id="背景">背景</h1>
+            <p>カルマンフィルタは、制御分野において状態推定のためによく使われる技術である。ロケットの軌道推定やカーナビ、あるいは経済学にも応用されており、古くはアポロ計画にも利用された実績がある。</p>
+            <p>カルマンフィルタは実装が比較的容易である一方で、推定アルゴリズムの導出は少しややこしい。制御分野で見かける導出では、系の線形性とか雑音のガウス性とかを先に仮定して、推定誤差の最小化に基づいて導出することが多い。</p>
+            <p>一方で、カルマンフィルタを確率的推論の特殊例として導出することも可能である。この導出手順を知っておくと、より一般的な状態推定手法であるベイズフィルタなどとの関連も見通しが立ちやすいと思う。</p>
+            <h1 id="カルマンフィルタのアルゴリズム">カルマンフィルタのアルゴリズム</h1>
+            <p>ある系の状態方程式と観測方程式が以下のように記述できるとする。<span class="math display">\[
+            \begin{aligned}
+            x_k &amp;= A_k x_{k-1} + B_k u_k + w_k \\
+            y_k &amp;= C_k x_k + v_k
+            \end{aligned}
+            \]</span>ここで、<span class="math inline">\(x_k\)</span>と<span class="math inline">\(y_k\)</span>はそれぞれ、時刻<span class="math inline">\(k\)</span>における状態変数と観測変数である。また、<span class="math inline">\(u_k\)</span>は制御入力であり、<span class="math inline">\(w_k\)</span>と<span class="math inline">\(v_k\)</span>はシステム雑音と観測雑音である。雑音は以下の確率分布に従ってサンプリングされるものと仮定する。<span class="math display">\[
+            \begin{aligned}
+            w_k &amp;\sim \mathcal{N}(w_k; 0, R) \\
+            v_k &amp;\sim \mathcal{N}(v_k; 0, Q)
+            \end{aligned}
+            \]</span>ここで<span class="math inline">\(\mathcal{N}\)</span>は正規分布を表し、以下のように定義される。<span class="math display">\[
+            \mathcal{N}(x; \mu, \Sigma) \triangleq \det(2\pi\Sigma)^{-\frac{1}{2}} \exp \left[-\frac{1}{2}(x - \mu)^{\top} \Sigma^{-1} (x - \mu) \right]
+            \]</span></p>
+            <p>カルマンフィルタは、時刻<span class="math inline">\(k-1\)</span>での状態変数<span class="math inline">\(x_{k-1}\)</span>が平均<span class="math inline">\(\mu_{k-1}\)</span>、分散<span class="math inline">\(\Sigma_{k-1}\)</span>の正規分布に従うとして、以下の手順で時刻<span class="math inline">\(k\)</span>での状態変数の期待値<span class="math inline">\(\mu_k\)</span>と分散<span class="math inline">\(\Sigma_k\)</span>を計算する。</p>
+            <ol type="1">
+            <li>予測ステップ<span class="math display">\[
+            \begin{aligned}
+            \bar{\mu}_{k} &amp;= A_k \mu_{k-1} + B_k u_k \\
+            \bar{\Sigma}_{k} &amp;= A_k \Sigma_{k-1} A_k^{\top} + R_k
+            \end{aligned}
+            \]</span></li>
+            <li>カルマンゲインの算出<span class="math display">\[
+            K_k = \bar{\Sigma}_k C_k^{\top} (C_k \bar{\Sigma}_k C_k^{\top} + Q_k)^{-1}
+            \]</span></li>
+            <li>更新ステップ<span class="math display">\[
+            \begin{aligned}
+            \mu_k &amp;= \bar{\mu}_{k} + K_k (y_k - C_k \bar{\mu}_k) \\
+            \Sigma_k &amp;= (I - K_k C_k) \bar{\Sigma}_{k}
+            \end{aligned}
+            \]</span></li>
+            </ol>
+            <h1 id="確率モデルの定式化">確率モデルの定式化</h1>
+            <p>まずは、線形性も正規性も仮定せず、一般的な隠れマルコフモデルとして系全体の確率モデルを定式化する。</p>
+            <p>表記の簡単化のため、ある変数<span class="math inline">\(v\)</span>の時刻<span class="math inline">\(k_1\)</span>から<span class="math inline">\(k_2\)</span>にかけての時系列を、まとめて以下のように表記する。<span class="math display">\[
+            v_{k_1:k_2} \triangleq (v_{k_1}, v_{k_1 + 1}, \ldots, v_{k_2})
+            \]</span>この表記を使うと、系全体の生成モデルは以下のように表せる。<span class="math display">\[
+            \begin{aligned}
+            p(x_{0:k}, y_{0:k})
+            &amp;= \left[ \prod_{l = 1}^{k} p(y_l | x_l) p(x_l | x_{l - 1}) \right] p(y_0 | x_0) p(x_0)\\
+            &amp;= p(y_k | x_k) p(x_{0:k}, y_{0:k-1})\\
+            &amp;= p(y_k | x_k) p(x_k | x_{k - 1}) p(x_{0:k-1}, y_{0:k-1})
+            \end{aligned}
+            \]</span>状態変数にマルコフ性があると仮定することで、生成過程は最後の式のように逐次的な形で表せる。</p>
+            <h1 id="一般的な推定手続きの導出">一般的な推定手続きの導出</h1>
+            <p>上記の生成モデルを使って、まずは一般的な推定手続きを導出する。ここで求めたいのは、現在の時刻<span class="math inline">\(k\)</span>での状態変数<span class="math inline">\(x_k\)</span>である。観測変数の時系列<span class="math inline">\(y_{0:k}\)</span>がわかっているとすると、求めるべき確率分布は以下のものになる。<span class="math display">\[
+            p(x_k | y_{0:k})
+            \]</span>すなわち、観測変数の時系列が与えられたときの、現在の状態変数の確率分布である。これがわかれば、その分布の期待値あるいは最頻値として、確率的に最適な推定値を求めることができる。</p>
+            <p>最終的な目標を、1時刻前の確率分布<span class="math inline">\(p(x_{k-1}| y_{0:k-1})\)</span>を使って現在の確率分布<span class="math inline">\(p(x_k| y_{0:k})\)</span>を導出することとする。これが計算できれば、新しい観測値が得られるたびに推定値を逐次更新することができる。</p>
+            <p>結論から言うと、以下の手順によって状態変数の確率分布を更新できる。カルマンフィルタと似た手順である。</p>
+            <ol type="1">
+            <li><span class="math inline">\(p(x_{k-1}| y_{0:k-1})\)</span>が与えられているとする（時刻<span class="math inline">\(0\)</span>の場合は<span class="math inline">\(p(x_{0})\)</span>）。</li>
+            <li>予測ステップ：状態遷移のモデルを使って、現在の状態変数の確率分布を計算する。すなわち、<span class="math inline">\(p(x_{k-1}| y_{0:k-1})\)</span>と<span class="math inline">\(p(x_k| x_{k-1})\)</span>から<span class="math inline">\(p(x_{k}| y_{0:k-1})\)</span>を求める:<span class="math display">\[
+            p(x_{k}| y_{0:k-1}) = \int p(x_k| x_{k-1}) p(x_{k-1}| y_{0:k-1}) \mathrm{d}x_{k-1} \qquad (1)
+            \]</span></li>
+            <li>更新ステップ：新しい観測値<span class="math inline">\(y_k\)</span>が得られたら、それを使って状態変数の確率分布を更新する。すなわち、<span class="math inline">\(p(x_{k}| y_{0:k-1})\)</span>と<span class="math inline">\(p(y_{k}| x_{k})\)</span>から<span class="math inline">\(p(x_{k}| y_{0:k})\)</span>を求める：<span class="math display">\[
+            p(x_k| y_{0:k}) = \frac{p(y_k| x_k) p(x_k| y_{0:k-1})}{\int p(y_k| x_k) p(x_k| y_{0:k-1}) \mathrm{d}x_{k}} \qquad (2)
+            \]</span></li>
+            </ol>
+            <p>以降では式(1)と(2)を導出していく。</p>
+            <h2 id="予測ステップの導出">予測ステップの導出</h2>
+            <p>まずは式(1)について。すなわち、時刻<span class="math inline">\(k\)</span>での観測値が得られる前の推定<span class="math display">\[
+            p(x_k| y_{0:k-1})
+            \]</span>を求める。これを展開すると、<span class="math display">\[
+            \begin{aligned}
+            p(x_k| y_{0:k-1})
+            &amp;= \frac{p(x_k, y_{0:k-1})}{p(y_{0:k-1})}\\
+            &amp;= \frac{\int p(x_{0:k}, y_{0:k-1}) \mathrm{d}x_{0:k-1}}{\int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-1}}\\
+            &amp;= \frac{\int p(x_k| x_{k-1}) \int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-2} \mathrm{d}x_{k-1}}{\int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-1}}\\
+            &amp;= \int p(x_k| x_{k-1}) \frac{\int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-2}}{\int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-1}} \mathrm{d}x_{k-1}
+            \end{aligned}
+            \]</span>のようになる。<span class="math display">\[
+            \begin{aligned}
+            p(x_k| y_{0:k-1})
+            &amp;= \frac{p(x_k, y_{0:k-1})}{p(y_{0:k-1})}\\
+            &amp;= \frac{\int p(x_{0:k}, y_{0:k-1}) \mathrm{d}x_{0:k-1}}{\int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-1}}\\
+            &amp;= \frac{\int p(x_k| x_{k-1}) \int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-2} \mathrm{d}x_{k-1}}{\int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-1}}\\
+            &amp;= \int p(x_k| x_{k-1}) \frac{\int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-2}}{\int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-1}} \mathrm{d}x_{k-1}
+            \end{aligned}
+            \]</span>ここで、<span class="math display">\[
+            \begin{aligned}
+                p(x_{k-1}| y_{0:k-1})
+                &amp;= \frac{p(x_{k-1}, y_{0:k-1})}{p(y_{0:k-1})}\\
+                &amp;= \frac{\int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-2}}{\int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-1}}
+            \end{aligned}
+            \]</span>であることから、<span class="math display">\[
+            p(x_k| y_{0:k-1}) = \int p(x_k| x_{k-1}) p(x_{k-1}| y_{0:k-1}) \mathrm{d}x_{k-1}
+            \]</span>と求まる。</p>
+            <h2 id="更新ステップの導出">更新ステップの導出</h2>
+            <p>続いて、式(2)について。すなわち、観測値<span class="math inline">\(y_k\)</span>が得られたときの状態変数の推定<span class="math display">\[
+            p(x_k| y_{0:k})
+            \]</span>を求める。この確率分布は、単純にベイズの定理を適用すればいい。展開すると、<span class="math display">\[
+            \begin{aligned}
+            p(x_k| y_{0:k})
+            &amp;= p(x_k| y_k, y_{0:k-1})\\
+            &amp;= \frac{p(y_k| x_k, y_{0:k-1}) p(x_k| y_{0:k-1})}{p(y_k| y_{0:k-1})}\\
+            &amp;= \frac{p(y_k| x_k, y_{0:k-1}) p(x_k| y_{0:k-1})}{\int p(y_k, x_k| y_{0:k-1}) \mathrm{d}x_k}\\
+            &amp;= \frac{p(y_k| x_k, y_{0:k-1}) p(x_k| y_{0:k-1})}{\int p(y_k| x_k, y_{0:k-1}) p(x_k| y_{0:k-1}) \mathrm{d}x_k}
+            \end{aligned}
+            \]</span>のようになる。ここで、有向分離によって<span class="math display">\[
+            p(y_k| x_k, y_{0:k-1}) = p(y_k| x_k)
+            \]</span>が得られることを使うと、最終的に、<span class="math display">\[
+            p(x_k| y_{0:k}) = \frac{p(y_k| x_k) p(x_k| y_{0:k-1})}{\int p(y_k| x_k) p(x_k| y_{0:k-1}) \mathrm{d}x_k}
+            \]</span>が求まる。</p>
+            <h1 id="カルマンフィルタの導出">カルマンフィルタの導出</h1>
+            <p>ここからは、上記の推定手続きに系の線形性や雑音の正規性などを入れていくことで、カルマンフィルタの導出をしていく。なお、以降の導出手順は <em>Thrun et al., 2005</em> に基づく。</p>
+            <p>確率分布を以下のように定式化する。<span class="math display">\[
+            \begin{aligned}
+            p(x_0) &amp;= \mathcal{N}(x_0; \mu_0, \Sigma_0)\\
+            p(x_k| x_{k-1}) &amp;= \mathcal{N}(x_k; A_k x_{k-1} + B_k u_k, R_k)\\
+            p(y_k| x_k) &amp;= \mathcal{N}(y_k; C_k x_k, Q_k)
+            \end{aligned}
+            \]</span>また、時刻<span class="math inline">\(k-1\)</span>での状態変数の事後分布を正規分布と仮定する。<span class="math display">\[
+            p(x_{k-1}| y_{0:k-1}) = \mathcal{N}(x_{k-1}; \mu_{k-1}, \Sigma_{k-1})
+            \]</span></p>
+            <p>これらを式(1)と(2)に代入していく。途中計算は非常に長く複雑なものになるが、最終的にはカルマンフィルタの更新式に対応した正規分布の形に行きつく。すなわち、<span class="math display">\[
+            \begin{aligned}
+            p(x_k| y_{0:k-1}) &amp;= \mathcal{N}(x_k; A_k \mu_{k-1} + B_k u_k, A_k \Sigma_{k-1} A_k^{\top} + R_k) \\
+            p(x_k| y_{0:k}) &amp;= \mathcal{N}(x_k; \bar{\mu}_{k} + K_k (y_k - C_k \bar{\mu}_k), (I - K_k C_k) \bar{\Sigma}_{k})
+            \end{aligned}
+            \]</span>が求まる。</p>
+            <h2 id="予測ステップの導出-1">予測ステップの導出</h2>
+            <p>まずは予測ステップについて考える。観測値が得られる前の現在の状態変数の確率分布<span class="math inline">\(p(x_k| y_{0:k-1})\)</span>は以下のようになる。<span class="math display">\[
+            \begin{aligned}
+            p(x_k| y_{0:k-1})
+            &amp;= \int p(x_k| x_{k-1}) p(x_{k-1}| y_{0:k-1}) \mathrm{d}x_{k-1} \\
+            &amp;= \int \mathcal{N}(x_k; A_k x_{k-1} + B_k u_k, R_k) p(x_{k-1}| y_{0:k-1}) \mathcal{N}(x_{k-1}; \hat{x}_{k-1}, S_{k-1}) \mathrm{d}x_{k-1} \\
+            &amp;= \int \det(2\pi R_k)^{-\frac{1}{2}} \exp \left[-\frac{1}{2}\{x_k - (A_k x_{k-1} + B_k u_k)\}^{\top} R_k^{-1} \{x_k - (A_k x_{k-1} + B_k u_k)\} \right] \det(2\pi\Sigma_k)^{-\frac{1}{2}} \exp \left[-\frac{1}{2}(x_{k-1} - \mu_{k-1})^{\top} \Sigma_{k-1}^{-1} (x_{k-1} - \mu_{k-1}) \right] \mathrm{d}x_{k-1} \\
+            &amp;= \det(2\pi R_k)^{-\frac{1}{2}} \det(2\pi\Sigma_k)^{-\frac{1}{2}} \int \exp \left(-\frac{1}{2} \left[\{x_k - (A_k x_{k-1} + B_k u_k)\}^{\top} R_k^{-1} \{x_k - (A_k x_{k-1} + B_k u_k)\} + (x_{k-1} - \mu_{k-1})^{\top} \Sigma_{k-1}^{-1} (x_{k-1} - \mu_{k-1}) \right]\right) \mathrm{d}x_{k-1} \\
+            &amp;= \eta \int \exp \left(-\frac{1}{2} L \right) \mathrm{d}x_{k-1}
+            \end{aligned}
+            \]</span>ここで、定数係数を<span class="math inline">\(\eta\)</span>に、指数部分を<span class="math inline">\(L\)</span>にまとめた。</p>
+            <p>確率分布は全区間での積分値が1になることから、定数係数<span class="math inline">\(\eta\)</span>はその他の部分から一意に決まるので、ひとまず無視していい。よって、この式において重要なのは指数部分の<span class="math inline">\(L\)</span>である。式には<span class="math inline">\(x_{k-1}\)</span>の積分があることから、以下のように、<span class="math inline">\(L\)</span>を<span class="math inline">\(x_{k-1}\)</span>に依存する項（積分される項）とそうでない項（積分の外に出せる項）とに分けられると便利である。<span class="math display">\[
+            L = L_1(x_k) + L_2(x_k, x_{k-1})
+            \]</span>ここで、天下りだが、以下のような形を求めることにする。<span class="math display">\[
+            \begin{aligned}
+            L_1(x_k) &amp;= (x_k - M_1)^{\top} S_1 (x_k - M_1) \\
+            L_2(x_k, x_{k-1}) &amp;= (x_{k-1} - M_2)^{\top} S_2 (x_{k-1} - M_2)
+            \end{aligned}
+            \]</span>ただし<span class="math inline">\(S_1\)</span>と<span class="math inline">\(S_2\)</span>は正定値対称行列とする。また、<span class="math inline">\(M_2\)</span>の中には<span class="math inline">\(x_k\)</span>が含まれうる。以降は<span class="math inline">\(L_1(x_k)\)</span>と<span class="math inline">\(L_2(x_k, x_{k-1})\)</span>の具体的な形を求めていく。</p>
+            <p>まずは<span class="math inline">\(L_2(x_k, x_{k-1})\)</span>について。<span class="math inline">\(L_2(x_k, x_{k-1})\)</span>は<span class="math inline">\(x_{k-1}\)</span>の二次式なので、<span class="math inline">\(x_{k-1}\)</span>の1階偏微分と2階偏微分から<span class="math inline">\(M_2\)</span>と<span class="math inline">\(S_2\)</span>が求められる。<span class="math inline">\(M_2\)</span>は<span class="math inline">\(L_2(x_k, x_{k-1}) = 0\)</span>の解でもあるので、1階偏微分がゼロとなるときの<span class="math inline">\(x_{k-1}\)</span>の値に等しい。また、<span class="math inline">\(S_2\)</span>は<span class="math inline">\(L_2(x_k, x_{k-1})\)</span>の2階偏微分で求まる。<span class="math display">\[
+            M_2 = x_{k-1} \Leftrightarrow \frac{\partial}{\partial x_{k-1}} L_2(x_k, x_{k-1}) = 0
+            \]</span><span class="math display">\[
+            S_2 = \frac{1}{2} \left( \frac{\partial}{\partial x_{k-1}} \right)^2 L_2(x_k, x_{k-1})
+            \]</span>ここで、<span class="math inline">\(L_1(x_k)\)</span>は<span class="math inline">\(x_{k-1}\)</span>を含まないので、<span class="math inline">\(x_{k-1}\)</span>で偏微分するとゼロになる。すなわち、<span class="math display">\[
+            \frac{\partial}{\partial x_{k-1}} L = \frac{\partial}{\partial x_{k-1}} [L_1(x_k) + L_2(x_k, x_{k-1})] = \frac{\partial}{\partial x_{k-1}} = L_2(x_k, x_{k-1})
+            \]</span>が成り立つ。これを使うと、1階偏微分は以下のように求まる。<span class="math display">\[
+            \begin{aligned}
+            \frac{\partial}{\partial x_{k-1}} L_2(x_k, x_{k-1})
+            &amp;= \frac{\partial}{\partial x_{k-1}} L \\
+            &amp;= \frac{\partial}{\partial x_{k-1}} \left[\{x_k - (A_k x_{k-1} + B_k u_k)\}^{\top} R_k^{-1} \{x_k - (A_k x_{k-1} + B_k u_k)\} + (x_{k-1} - \mu_{k-1})^{\top} \Sigma_{k-1}^{-1} (x_{k-1} - \mu_{k-1}) \right] \\
+            &amp;= -2 A_k^{\top} R_k^{-1} (x_k - A_k x_{k-1} - B_k u_k) + 2 \Sigma_{k-1}^{-1} (x_{k-1} - \mu_{k-1}) \\
+            \end{aligned}
+            \]</span>2行目から3行目の変形では、偏微分に関する以下の定理を用いた。<span class="math display">\[
+            \frac{\partial}{\partial x} (B x + c)^{\top} A (B x + c) = 2 B^{\top} A (B x + c)
+            \]</span>また、2階偏微分は以下のように求まる。<span class="math display">\[
+            \begin{aligned}
+            \left( \frac{\partial}{\partial x_{k-1}} \right)^2 L_2(x_k, x_{k-1})
+            &amp;= \left( \frac{\partial}{\partial x_{k-1}} \right)^2 L \\
+            &amp;= \frac{\partial}{\partial x_{k-1}} L \left[ -2 A_k^{\top} R_k^{-1} (x_k - A_k x_{k-1} - B_k u_k) + 2 \Sigma_{k-1}^{-1} (x_{k-1} - \mu_{k-1}) \right] \\
+            &amp;= 2 A_k^{\top} R_k^{-1} A_k + 2 \Sigma_{k-1}^{-1} \\
+            \end{aligned}
+            \]</span></p>
+            <p>最終的に、以下が得られる。<span class="math display">\[
+            \begin{aligned}
+            S_2 &amp;= A_k^{\top} R_k^{-1} A_k + \Sigma_{k-1}^{-1} \triangleq \Psi_k^{-1} \\
+            M_2 &amp;= \Psi_k [A_k^{\top} R_k^{-1} (x_k - B_k u_k)]
+            \end{aligned}
+            \]</span></p>
+            <p>続いて、<span class="math inline">\(L_1(x_k)\)</span>について。上の結果より、<span class="math display">\[
+            \begin{aligned}
+            L_1(x_k) =&amp; L - L_2(x_k, x_{k-1}) \\
+            =&amp; \{x_k - (A_k x_{k-1} + B_k u_k)\}^{\top} Q_k^{-1} \{x_k - (A_k x_{k-1} + B_k u_k)\} + (x_{k-1} - \mu_{k-1})^{\top} \Sigma_{k-1}^{-1} (x_{k-1} - \mu_{k-1}) \\
+            &amp;- (x_{k-1} - \Psi_k [A_k^{\top} R_k^{-1} (x_k - B_k u_k)])^{\top} \Psi_k^{-1} (x_{k-1} - \Psi_k [A_k^{\top} R_k^{-1} (x_k - B_k u_k)]) \\
+            =&amp; (x_k - B_k u_k)^{\top} R_k^{-1} (x_k - B_k u_k) + \mu_{k-1}^{\top} \Sigma_{k-1}^{-1} \mu_{k-1} + [A_k^{\top} R_k^{-1} (x_k - B_k u_k) + \Sigma_{k-1}^{-1} \mu_{k-1}]^{\top} \Psi_k [A_k^{\top} R_k^{-1} (x_k - B_k u_k) + \Sigma_{k-1}^{-1} \mu_{k-1}]
+            \end{aligned}
+            \]</span>が得られる。<span class="math inline">\(x_{k-1}\)</span>が打ち消し合って、すべて消えることがわかる。これを<span class="math inline">\(x_k\)</span>で偏微分して<span class="math inline">\(S_1\)</span>と<span class="math inline">\(M_1\)</span>を求める。まずは1階偏微分を計算していく。<span class="math display">\[
+            \begin{aligned}
+            \frac{\partial}{\partial x_k} L_1(x_k)
+            &amp;= 2 R_k^{-1} (x_k - B_k u_k) - 2 R_k^{-1} A_k \Psi_k [A_k^{\top} R_k^{-1} (x_k - B_k u_k) + \Sigma_{k-1}^{-1} \mu_{k-1}] \\
+            &amp;= 2 [R_k^{-1} - R_k^{-1} A_k \Psi_k A_k^{\top} R_k^{-1}] (x_k - B_k u_k) - 2 R_k^{-1} A_k \Psi_k \Sigma_{k-1}^{-1} \mu_{k-1}
+            \end{aligned}
+            \]</span>これを展開するために、以下に示す逆行列の補助定理を使う。<span class="math display">\[
+            (R + P Q P^{\top})^{-1} = R^{-1} - R^{-1} P (Q^{-1} + P^{\top} R^{-1} P)^{-1} P^{\top} R^{-1}
+            \]</span>実際に使う記号を当てはめると、<span class="math display">\[
+            \begin{aligned}
+            (R_k + A_k \Sigma_{k-1} A_k^{\top})^{-1} &amp;= R_k^{-1} - R_k^{-1} A_k (A_k^{\top} R_k^{-1} A_k + \Sigma_{k-1}^{-1})^{-1} A_k^{\top} R_k^{-1} \\
+            &amp;= R_k^{-1} - R_k^{-1} A_k \Psi_k A_k^{\top} R_k^{-1}
+            \end{aligned}
+            \]</span>となる。よって、1階偏微分は以下のように求まる。<span class="math display">\[
+            \frac{\partial}{\partial x_k} L_1(x_k)
+            = 2 (R_k + A_k \Sigma_{k-1} A_k^{\top})^{-1} (x_k - B_k u_k) - 2 R_k^{-1} A_k \Psi_k \Sigma_{k-1}^{-1} \mu_{k-1}
+            \]</span><span class="math inline">\(\frac{\partial}{\partial x_k} L_1(x_k) = 0\)</span>とすると、<span class="math display">\[
+            \begin{aligned}
+            \frac{\partial}{\partial x_k} L_1(x_k)
+            &amp;= 2 (R_k + A_k \Sigma_{k-1} A_k^{\top})^{-1} (x_k - B_k u_k) - 2 R_k^{-1} A_k \Psi_k \Sigma_{k-1}^{-1} \mu_{k-1} = 0 \\
+            (R_k + A_k \Sigma_{k-1} A_k^{\top})^{-1} (x_k - B_k u_k) &amp;= R_k^{-1} A_k \Psi_k \Sigma_{k-1}^{-1} \mu_{k-1} \\
+            x_k - B_k u_k &amp;= (R_k + A_k \Sigma_{k-1} A_k^{\top}) R_k^{-1} A_k \Psi_k \Sigma_{k-1}^{-1} \mu_{k-1} \\
+            x_k &amp;= (R_k + A_k \Sigma_{k-1} A_k^{\top}) R_k^{-1} A_k \Psi_k \Sigma_{k-1}^{-1} \mu_{k-1} + B_k u_k\\
+            &amp;= (R_k + A_k \Sigma_{k-1} A_k^{\top}) R_k^{-1} A_k (A_k^{\top} R_k^{-1} A_k + \Sigma_{k-1}^{-1})^{-1} \Sigma_{k-1}^{-1} \mu_{k-1} + B_k u_k\\
+            &amp;= (R_k R_k^{-1} A_k + A_k \Sigma_{k-1} A_k^{\top} R_k^{-1} A_k) (A_k^{\top} R_k^{-1} A_k + \Sigma_{k-1}^{-1})^{-1} \Sigma_{k-1}^{-1} \mu_{k-1} + B_k u_k\\
+            &amp;= (A_k + A_k \Sigma_{k-1} A_k^{\top} R_k^{-1} A_k) (A_k^{\top} R_k^{-1} A_k + \Sigma_{k-1}^{-1})^{-1} \Sigma_{k-1}^{-1} \mu_{k-1} + B_k u_k\\
+            &amp;= A_k (I + \Sigma_{k-1} A_k^{\top} R_k^{-1} A_k) (A_k^{\top} R_k^{-1} A_k + \Sigma_{k-1}^{-1})^{-1} \Sigma_{k-1}^{-1} \mu_{k-1} + B_k u_k\\
+            &amp;= A_k (I + \Sigma_{k-1} A_k^{\top} R_k^{-1} A_k) (\Sigma_{k-1} A_k^{\top} R_k^{-1} A_k + \Sigma_{k-1} \Sigma_{k-1}^{-1})^{-1} \mu_{k-1} + B_k u_k\\
+            &amp;= A_k (I + \Sigma_{k-1} A_k^{\top} R_k^{-1} A_k) (\Sigma_{k-1} A_k^{\top} R_k^{-1} A_k + I)^{-1} \mu_{k-1} + B_k u_k\\
+            &amp;= A_k \mu_{k-1} + B_k u_k\\
+            \therefore M_1 &amp;= A_k \mu_{k-1} + B_k u_k\\
+            \end{aligned}
+            \]</span>が得られる。また、2階偏微分を計算すると、<span class="math display">\[
+            \begin{aligned}
+            S_1 &amp;= \frac{1}{2} \left( \frac{\partial}{\partial x_k} \right)^2 L_1(x_k) \\
+            &amp;= (R_k + A_k \Sigma_{k-1} A_k^{\top})^{-1}
+            \end{aligned}
+            \]</span>となる。これらを代入することで、<span class="math inline">\(L_1(x_k)\)</span>の具体的な形が以下のように求まる。<span class="math display">\[
+            L_1(x_k) = [x_k - (A_k \mu_{k-1} + B_k u_k)]^{\top} (R_k + A_k \Sigma_{k-1} A_k^{\top})^{-1} [x_k - (A_k \mu_{k-1} + B_k u_k)] \\
+            \]</span></p>
+            <p>以上のようにして得られた<span class="math inline">\(L_1(x_k)\)</span>と<span class="math inline">\(L_2(x_k, x_{k-1})\)</span>とを、予測ステップの確率分布に戻していく。<span class="math display">\[
+            \begin{aligned}
+            p(x_k| y_{0:k-1})
+            &amp;= \eta \int \exp \left(-\frac{1}{2} L \right) \mathrm{d}x_{k-1} \\
+            &amp;= \eta \int \exp \left(-\frac{1}{2} [L_1(x_k) + L_2(x_k, x_{k-1})] \right) \mathrm{d}x_{k-1} \\
+            &amp;= \eta \exp \left[-\frac{1}{2} L_1(x_k) \right] \int \exp \left[-\frac{1}{2} L_2(x_k, x_{k-1}) \right] \mathrm{d}x_{k-1}
+            \end{aligned}
+            \]</span>ここで、<span class="math inline">\(\int \exp \left[-\frac{1}{2} L_2(x_k, x_{k-1}) \right] \mathrm{d}x_{k-1}\)</span>はガウス積分の形になっており、その積分値は定数になる。よって、積分の部分は定数係数にまとめることができて、以下のように表せるようになる。<span class="math display">\[
+            \begin{aligned}
+            p(x_k| y_{0:k-1})
+            &amp;\propto \exp \left[-\frac{1}{2} L_1(x_k) \right] \\
+            &amp;\propto \exp \left\{-\frac{1}{2} [x_k - (A_k \mu_{k-1} + B_k u_k)]^{\top} (R_k + A_k \Sigma_{k-1} A_k^{\top})^{-1} [x_k - (A_k \mu_{k-1} + B_k u_k)] \right\} \\
+            \end{aligned}
+            \]</span>指数部分が正規分布の形式になっていることがわかる。確率分布は全区間で積分した結果が1になることから、定数係数は一意に復元できるので、結局<span class="math inline">\(p(x_k| y_{0:k-1})\)</span>は以下のような正規分布になる。<span class="math display">\[
+            p(x_k| y_{0:k-1}) = \mathcal{N}(x_k; A_k \mu_{k-1} + B_k u_k, R_k + A_k \Sigma_{k-1} A_k^{\top})
+            \]</span>この平均と分散は、カルマンフィルタの予測ステップで求められる平均と分散に等しい。こうして、予測ステップの手続きが導出できた。</p>
+            <h2 id="更新ステップの導出-1">更新ステップの導出</h2>
+            <p>続いて、更新ステップを考える。予測ステップで得た確率分布の平均と分散とを<span class="math display">\[
+            \begin{aligned}
+            p(x_k| y_{0:k-1}) &amp;= \mathcal{N}(x_k; A_k \mu_{k-1} + B_k u_k, R_k + A_k \Sigma_{k-1} A_k^{\top})\\
+            &amp;\triangleq \mathcal{N}(x_k; \bar{\mu}_{k}, \bar{\Sigma}_{k})
+            \end{aligned}
+            \]</span>のようにおくと、観測値<span class="math inline">\(y_k\)</span>が得られた後の確率分布<span class="math inline">\(p(x_k| y_{0:k})\)</span>は以下のようになる。<span class="math display">\[
+            \begin{aligned}
+            p(x_k| y_{0:k}) &amp;= \frac{p(y_k| x_k) p(x_k| y_{0:k-1})}{\int p(y_k| x_k) p(x_k| y_{0:k-1}) \mathrm{d}x_k}\\
+            &amp;= \frac{\mathcal{N}(y_k; C_k x_k, Q_k) \mathcal{N}(x_k; \bar{\mu}_{k}, \bar{\Sigma}_{k})}{\int p(y_k| x_k) p(x_k| y_{0:k-1}) \mathrm{d}x_k}\\
+            &amp;= \frac{\det(2\pi Q_k)^{-\frac{1}{2}} \det(2\pi\bar{\Sigma}_k)^{-\frac{1}{2}}}{\int p(y_k| x_k) p(x_k| y_{0:k-1}) \mathrm{d}x_k} \exp\left[-\frac{1}{2}(y_k - C_k x_k)^{\top} Q_k^{-1} (y_k - C_k x_k) \right] \exp\left[-\frac{1}{2}(x_k - \bar{\mu}_k)^{\top} \bar{\Sigma}_k^{-1} (x_k - \bar{\mu}_k) \right]\\
+            &amp;= \frac{\det(2\pi Q_k)^{-\frac{1}{2}} \det(2\pi\bar{\Sigma}_k)^{-\frac{1}{2}}}{\int p(y_k| x_k) p(x_k| y_{0:k-1}) \mathrm{d}x_k} \exp\left\{-\frac{1}{2}\left[(y_k - C_k x_k)^{\top} Q_k^{-1} (y_k - C_k x_k) + (x_k - \bar{\mu}_k)^{\top} \bar{\Sigma}_k^{-1} (x_k - \bar{\mu}_k) \right]\right\}\\
+            &amp;= \zeta \exp\left( -\frac{1}{2} J \right)
+            \end{aligned}
+            \]</span>ここで、定数部分を<span class="math inline">\(\zeta\)</span>に、指数部分を<span class="math inline">\(J\)</span>にまとめた（積分項は<span class="math inline">\(x_k\)</span>を含まないので定数項にまとめられる）。</p>
+            <p>予測ステップのときと同様に、定数項<span class="math inline">\(\zeta\)</span>は確率分布の正規性から一意に定まるので無視してもいい。なので、ここからは<span class="math inline">\(J\)</span>を変形していく。</p>
+            <p>ここで、以下のように、<span class="math inline">\(J\)</span>が<span class="math inline">\(x_k\)</span>の二次式になるとする。<span class="math display">\[
+            J = (x_k - M)^{\top} S (x_k - M)
+            \]</span>ただし、<span class="math inline">\(S\)</span>は正定値対称行列とする。<span class="math inline">\(M\)</span>と<span class="math inline">\(S\)</span>は、予測ステップのときと同様に、<span class="math inline">\(J\)</span>の2階までの偏微分から求めることができる。</p>
+            <p>まずは、<span class="math inline">\(M\)</span>について。<span class="math inline">\(M\)</span>は、<span class="math display">\[
+            M = x_k \Leftrightarrow \frac{\partial}{\partial x_k} J = 0
+            \]</span>であることを使って求められる。<span class="math display">\[
+            \begin{aligned}
+            \frac{\partial}{\partial x_k} J &amp;= \frac{\partial}{\partial x_k} \left[(y_k - C_k x_k)^{\top} Q_k^{-1} (y_k - C_k x_k) + (x_k - \bar{\mu}_k)^{\top} \bar{\Sigma}_k^{-1} (x_k - \bar{\mu}_k)\right]\\
+            &amp;= -2 C_k^{\top} Q_k^{-1} (y_k - C_k x_k) + 2 \bar{\Sigma}_k^{-1} (x_k - \bar{\mu}_k)
+            \end{aligned}
+            \]</span>より、<span class="math inline">\(\frac{\partial}{\partial x_k} J = 0\)</span>とすると、<span class="math display">\[
+            \begin{aligned}
+            -2 C_k^{\top} Q_k^{-1} (y_k - C_k x_k) + 2 \bar{\Sigma}_k^{-1} (x_k - \bar{\mu}_k) &amp;= 0\\
+            \bar{\Sigma}_k^{-1} (x_k - \bar{\mu}_k) &amp;= C_k^{\top} Q_k^{-1} (y_k - C_k x_k)\\
+            \bar{\Sigma}_k^{-1} x_k - \bar{\Sigma}_k^{-1} \bar{\mu}_k &amp;= C_k^{\top} Q_k^{-1} y_k - C_k^{\top} Q_k^{-1} C_k x_k\\
+            \bar{\Sigma}_k^{-1} x_k + C_k^{\top} Q_k^{-1} C_k x_k &amp;= C_k^{\top} Q_k^{-1} y_k + \bar{\Sigma}_k^{-1} \bar{\mu}_k\\
+            (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k) x_k &amp;= C_k^{\top} Q_k^{-1} y_k + \bar{\Sigma}_k^{-1} \bar{\mu}_k\\
+            x_k &amp;= (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} y_k + \bar{\Sigma}_k^{-1} \bar{\mu}_k)
+            \end{aligned}
+            \]</span>となる。よって、<span class="math display">\[
+            M = (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} y_k + \bar{\Sigma}_k^{-1} \bar{\mu}_k)
+            \]</span></p>
+            <p>続いて、<span class="math inline">\(S\)</span>について。<span class="math display">\[
+            \begin{aligned}
+            S &amp;= \frac{1}{2} \left( \frac{\partial}{\partial x_k} \right)^2 J\\
+            &amp;= \bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k
+            \end{aligned}
+            \]</span></p>
+            <p>これを元の式に代入すると、<span class="math display">\[
+            \begin{aligned}
+            p(x_k| y_{0:k}) &amp;= \zeta \exp\left( -\frac{1}{2} J \right)\\
+            &amp;= \zeta \exp \left[ -\frac{1}{2} (x_k - M)^{\top} S (x_k - M) \right]\\
+            &amp;= \zeta \exp \left\{ -\frac{1}{2} [x_k - (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} y_k + \bar{\Sigma}_k^{-1} \bar{\mu}_k)]^{\top} (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k) [x_k - (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} y_k + \bar{\Sigma}_k^{-1} \bar{\mu}_k)] \right\}
+            \end{aligned}
+            \]</span>となる。この式は正規分布の形なので、最終的に、<span class="math inline">\(p(x_k| y_{0:k})\)</span>は以下のような正規分布になる。<span class="math display">\[
+            p(x_k| y_{0:k}) = \mathcal{N}(x_k; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} y_k + \bar{\Sigma}_k^{-1} \bar{\mu}_k), (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1})
+            \]</span></p>
+            <p>更新ステップの手続き自体は以上で求まった。しかし、確率分布の平均と分散はまだカルマンフィルタのものと似つかない。以降は、カルマンフィルタの導出に向けて式変形していく。</p>
+            <p>上で求まった正規分布の平均と分散をそれぞれ以下のようにおく。<span class="math display">\[
+            \begin{aligned}
+            \mu_k &amp;= (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} y_k + \bar{\Sigma}_k^{-1} \bar{\mu}_k)\\
+            \Sigma_k &amp;= (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1}\\
+            \end{aligned}
+            \]</span></p>
+            <p>まずは、平均<span class="math inline">\(\mu_k\)</span>を変形していく。<span class="math display">\[
+            \begin{aligned}
+            \mu_k &amp;= (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} y_k + \bar{\Sigma}_k^{-1} \bar{\mu}_k)\\
+            &amp;= (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} y_k + \bar{\Sigma}_k^{-1} \bar{\mu}_k + C_k^{\top} Q_k^{-1} C_k \bar{\mu}_k - C_k^{\top} Q_k^{-1} C_k \bar{\mu}_k)\\
+            &amp;= (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} [C_k^{\top} Q_k^{-1} y_k + (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k) \bar{\mu}_k - C_k^{\top} Q_k^{-1} C_k \bar{\mu}_k]\\
+            &amp;= \bar{\mu}_k + (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} y_k - C_k^{\top} Q_k^{-1} C_k \bar{\mu}_k)\\
+            &amp;= \bar{\mu}_k + (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} C_k^{\top} Q_k^{-1} (y_k - C_k \bar{\mu}_k)\\
+            \end{aligned}
+            \]</span></p>
+            <p>さらに、<span class="math inline">\((\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} C_k^{\top} Q_k^{-1}\)</span>の部分を抜き出して変形すると、<span class="math display">\[
+            \begin{aligned}
+            &amp;(\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} C_k^{\top} Q_k^{-1}\\
+            =&amp; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} C_k^{\top} Q_k^{-1} (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k) (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
+            =&amp; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k^{\top} \bar{\Sigma}_k^{-1} C_k + C_k^{\top} Q_k^{-1} Q_k) (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
+            =&amp; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k^{\top} \bar{\Sigma}_k^{-1} C_k + C_k^{\top}) (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
+            =&amp; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k^{\top} \bar{\Sigma}_k^{-1} C_k + \bar{\Sigma}_k^{-1} \bar{\Sigma}_k C_k^{\top}) (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
+            =&amp; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k^{\top} + \bar{\Sigma}_k^{-1}) \bar{\Sigma}_k C_k^{\top} (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
+            =&amp; \bar{\Sigma}_k C_k^{\top} (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
+            \end{aligned}
+            \]</span>となる。よって、<span class="math inline">\(\mu_k\)</span>は以下のように表せる。<span class="math display">\[
+            \mu_k = \bar{\mu}_k + \bar{\Sigma}_k C_k^{\top} (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1} (y_k - C_k \bar{\mu}_k)
+            \]</span></p>
+            <p>続いて、<span class="math inline">\(\Sigma_k\)</span>について考える。予測ステップの導出で使った逆行列の補助定理を使うと、<span class="math inline">\(\Sigma_k\)</span>は以下のように変形できる。<span class="math display">\[
+            \begin{aligned}
+            \Sigma_k &amp;= (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1}\\
+            &amp;= \bar{\Sigma}_k - \bar{\Sigma}_k C_k^{-1} (Q_k + C_k^{\top} \bar{\Sigma}_k^{-1} C_k) C_k \bar{\Sigma}_k\\
+            &amp;= [I - \bar{\Sigma}_k C_k^{-1} (Q_k + C_k^{\top} \bar{\Sigma}_k^{-1} C_k) C_k] \bar{\Sigma}_k
+            \end{aligned}
+            \]</span></p>
+            <p>以上のようにして得られた<span class="math inline">\(\mu_k\)</span>と<span class="math inline">\(\Sigma_k\)</span>とを見比べると、共通して<span class="math inline">\(\bar{\Sigma}_k C_k^{-1} (Q_k + C_k^{\top} \bar{\Sigma}_k^{-1} C_k)\)</span>を含むことがわかる。これを<span class="math inline">\(K_k\)</span>とおくことで、更新ステップの確率分布<span class="math inline">\(p(x_k| y_{0:k})\)</span>は以下のように表せる。<span class="math display">\[
+            p(x_k| y_{0:k}) = \mathcal{N}(x_k; \bar{\mu}_k + K_k (y_k - C_k \bar{\mu}_k),  (I - K_k C_k) \bar{\Sigma}_k)
+            \]</span><span class="math display">\[
+            K_k \triangleq \bar{\Sigma}_k C_k^{-1} (Q_k + C_k^{\top} \bar{\Sigma}_k^{-1} C_k)
+            \]</span>これらの式は、カルマンフィルタの更新ステップの手続きそのものである。</p>
+            <h1 id="まとめ">まとめ</h1>
+            <p>もうちょっとわかりやすくなるようにしたいので直すかも。</p>
+            <h1 id="参考文献">参考文献</h1>
+            <ol type="1">
+            <li>S. Thrun, W. Burgard, and D. Fox, “Probabilistic Robotics,” MIT Press, 2005.</li>
+            </ol>
+        </article>
+    </main>
+</body>
+</html>
