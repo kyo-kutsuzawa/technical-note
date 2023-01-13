@@ -97,6 +97,7 @@ img {
     float: left;
     max-width: 250px;
     min-height: 70px;
+    text-align: left;
     width: 90%;
 }
 
