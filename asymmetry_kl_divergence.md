@@ -4,10 +4,10 @@ title: KL情報量の非対称性
 
 # 概要
 
-- KL情報量は2つの確率分布の違いを測る指標だが、対称性をもたないので、確率分布の最適化において$D_{\mathrm{KL}}(p || q)$を使うか$D_{\mathrm{KL}}(q || p)$を使うかで解が異なることがある。それぞれの解は、$\lim_{x \rightarrow 0}(-\log x) = \infty$であることに起因して異なる傾向を示す。
-- $\operatorname{arg min}_q D_{\mathrm{KL}}(p || q)$の解は、$p$を取りこぼしなく覆うような確率分布となる（包括的な分布）。
+- KL情報量は2つの確率分布の違いを測る指標だが、対称性をもたないので、確率分布の最適化において$D_{\mathrm{KL}}(p \parallel q)$を使うか$D_{\mathrm{KL}}(q \parallel p)$を使うかで解が異なることがある。それぞれの解は、$\lim_{x \rightarrow 0}(-\log x) = \infty$であることに起因して異なる傾向を示す。
+- $\operatorname{arg min}_q D_{\mathrm{KL}}(p \parallel q)$の解は、$p$を取りこぼしなく覆うような確率分布となる（包括的な分布）。
 	- $q$が正規分布のときは、できるだけすべての峰（モード）を覆うような大きな分散の正規分布になる。
-- $\operatorname{arg min}_q D_{\mathrm{KL}}(q || p)$の解は、$p$の低い領域を避けるような確率分布となる（排他的な分布）。
+- $\operatorname{arg min}_q D_{\mathrm{KL}}(q \parallel p)$の解は、$p$の低い領域を避けるような確率分布となる（排他的な分布）。
 	- $q$が正規分布のときは、ひとつの峰（モード）を狙って捉えるような比較的小さな分散の正規分布になる。
 
 # 背景
@@ -15,7 +15,7 @@ title: KL情報量の非対称性
 2つの連続値確率分布$p$と$q$を考える。
 これらの間のKullback-Leibler（KL）情報量は、以下のように定義される。
 $$
-D_{\mathrm{KL}}(p || q) \triangleq \int_{-\infty}^{\infty} p(x) \log \frac{p(x)}{q(x)} \mathrm{d}x
+D_{\mathrm{KL}}(p \parallel q) \triangleq \int_{-\infty}^{\infty} p(x) \log \frac{p(x)}{q(x)} \mathrm{d}x
 $$
 
 確率的推論では、KL情報量の最小化がよく現れる。
@@ -25,22 +25,22 @@ $$
 KL情報量は対称性がない。
 すなわち、一般に
 $$
-D_{\mathrm{KL}}(q || p) \neq D_{\mathrm{KL}}(p || q)
+D_{\mathrm{KL}}(q \parallel p) \neq D_{\mathrm{KL}}(p \parallel q)
 $$
 である。
 そのため、KL情報量を最小化する問題も、以下のように引数の位置によって解が異なることがある。
 $$
-\underset{q}{\operatorname{arg min}} D_{\mathrm{KL}}(p || q) \neq \underset{q}{\operatorname{arg min}} D_{\mathrm{KL}}(q || p)
+\underset{q}{\operatorname{arg min}} D_{\mathrm{KL}}(p \parallel q) \neq \underset{q}{\operatorname{arg min}} D_{\mathrm{KL}}(q \parallel p)
 $$
 
 それぞれの最小化問題で得られる解の特徴は、主に$f(x) = 0 \Rightarrow -\log f(x) = \infty$となることに起因して、以下のような傾向をもつと言える。
 
-# $\operatorname{arg min}_q D_{\mathrm{KL}}(p || q)$について
+# $\operatorname{arg min}_q D_{\mathrm{KL}}(p \parallel q)$について
 
-$D_{\mathrm{KL}}(p || q)$は以下のように変形できる。
+$D_{\mathrm{KL}}(p \parallel q)$は以下のように変形できる。
 $$
 \begin{aligned}
-D_{\mathrm{KL}}(p || q) &= \int_{-\infty}^{\infty} p(x) \log \frac{p(x)}{q(x)} \mathrm{d}x\\
+D_{\mathrm{KL}}(p \parallel q) &= \int_{-\infty}^{\infty} p(x) \log \frac{p(x)}{q(x)} \mathrm{d}x\\
 &= \int_{-\infty}^{\infty} p(x) \log p(x) \mathrm{d}x - \int_{-\infty}^{\infty} p(x) \log q(x) \mathrm{d}x\\
 &= \mathbb{E}_{x \sim p(x)}[\log p(x)] - \mathbb{E}_{x \sim p(x)}[\log q(x)]
 \end{aligned}
@@ -59,13 +59,13 @@ $$
 $p(x)$が小さいところを取り込むのは問題ないが、$p(x)$が大きいところを取りこぼすとKL情報量が極端に大きくなってしまう。
 そのため、$p(x)$がゼロより大きいところで$q(x)$もゼロより大きくなることが優先される。
 
-$p$が混合正規分布のような多峰性をもつ確率分布で、$q$が正規分布であるとき、$\operatorname{arg min}_q D_{\mathrm{KL}}(p || q)$の解は、できるだけすべての峰を覆うような大きな分散の正規分布になる。
+$p$が混合正規分布のような多峰性をもつ確率分布で、$q$が正規分布であるとき、$\operatorname{arg min}_q D_{\mathrm{KL}}(p \parallel q)$の解は、できるだけすべての峰を覆うような大きな分散の正規分布になる。
 
-# $\operatorname{arg min}_q D_{\mathrm{KL}}(q || p)$について
+# $\operatorname{arg min}_q D_{\mathrm{KL}}(q \parallel p)$について
 
-$D_{\mathrm{KL}}(q || p)$は以下のように変形できる。
+$D_{\mathrm{KL}}(q \parallel p)$は以下のように変形できる。
 $$
-D_{\mathrm{KL}}(q || p) = \mathbb{E}_{x \sim q(x)}[\log q(x)] + \mathbb{E}_{x \sim q(x)}[-\log p(x)]
+D_{\mathrm{KL}}(q \parallel p) = \mathbb{E}_{x \sim q(x)}[\log q(x)] + \mathbb{E}_{x \sim q(x)}[-\log p(x)]
 $$
 すなわち、KL情報量の最小化問題は以下のように書き直せる。
 $$
@@ -80,4 +80,4 @@ $$
 $p(x)$が大きくなるところを広く捉えようとする一方で、$p(x)$が小さいところまで覆ってしまうとKL情報量が極端に大きくなってしまう。
 そのため、$p(x)$がゼロに近いところで$q(x)$もゼロに近くなることが優先される。
 
-$p$が混合正規分布のような多峰性をもつ確率分布で、$q$が正規分布であるとき、$\operatorname{arg min}_q D_{\mathrm{KL}}(q || p)$の解は、ひとつの峰を狙って捉えるような比較的小さな分散の正規分布になる。
+$p$が混合正規分布のような多峰性をもつ確率分布で、$q$が正規分布であるとき、$\operatorname{arg min}_q D_{\mathrm{KL}}(q \parallel p)$の解は、ひとつの峰を狙って捉えるような比較的小さな分散の正規分布になる。
