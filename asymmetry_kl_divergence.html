@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KL情報量の非対称性</title>
+<link href="mystyle.css" rel="stylesheet" type="text/css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+</head>
+<body>
+    <header id="home">
+        <h1>KL情報量の非対称性</h1>
+    </header>
+    <nav>
+        <ul>
+        <li><a href="#概要">概要</a></li>
+        <li><a href="#背景">背景</a></li>
+        <li><a href="#operatornamearg-min_q-d_mathrmklp-qについて"><span class="math inline">\(\operatorname{arg min}_q D_{\mathrm{KL}}(p || q)\)</span>について</a></li>
+        <li><a href="#operatornamearg-min_q-d_mathrmklq-pについて"><span class="math inline">\(\operatorname{arg min}_q D_{\mathrm{KL}}(q || p)\)</span>について</a></li>
+        </ul>
+    </nav>
+    <main>
+        <article>
+            <h1 id="概要">概要</h1>
+            <ul>
+            <li>KL情報量は2つの確率分布の違いを測る指標だが、対称性をもたないので、確率分布の最適化において<span class="math inline">\(D_{\mathrm{KL}}(p || q)\)</span>を使うか<span class="math inline">\(D_{\mathrm{KL}}(q || p)\)</span>を使うかで解が異なることがある。それぞれの解は、<span class="math inline">\(\lim_{x \rightarrow 0}(-\log x) = \infty\)</span>であることに起因して異なる傾向を示す。</li>
+            <li><span class="math inline">\(\operatorname{arg min}_q D_{\mathrm{KL}}(p || q)\)</span>の解は、<span class="math inline">\(p\)</span>を取りこぼしなく覆うような確率分布となる（包括的な分布）。
+            <ul>
+            <li><span class="math inline">\(q\)</span>が正規分布のときは、できるだけすべての峰（モード）を覆うような大きな分散の正規分布になる。</li>
+            </ul></li>
+            <li><span class="math inline">\(\operatorname{arg min}_q D_{\mathrm{KL}}(q || p)\)</span>の解は、<span class="math inline">\(p\)</span>の低い領域を避けるような確率分布となる（排他的な分布）。
+            <ul>
+            <li><span class="math inline">\(q\)</span>が正規分布のときは、ひとつの峰（モード）を狙って捉えるような比較的小さな分散の正規分布になる。</li>
+            </ul></li>
+            </ul>
+            <h1 id="背景">背景</h1>
+            <p>2つの連続値確率分布<span class="math inline">\(p\)</span>と<span class="math inline">\(q\)</span>を考える。これらの間のKullback-Leibler（KL）情報量は、以下のように定義される。<span class="math display">\[
+            D_{\mathrm{KL}}(p || q) \triangleq \int_{-\infty}^{\infty} p(x) \log \frac{p(x)}{q(x)} \mathrm{d}x
+            \]</span></p>
+            <p>確率的推論では、KL情報量の最小化がよく現れる。例えば変分推論では、事後確率分布が解析的に求まらないときに、代わりにそれとのKL情報量が最小となる近似確率分布を求めようとする。また、最尤推定も、サンプルサイズが無限大のときはKL情報量の最小化問題と等価になる。</p>
+            <p>KL情報量は対称性がない。すなわち、一般に<span class="math display">\[
+            D_{\mathrm{KL}}(q || p) \neq D_{\mathrm{KL}}(p || q)
+            \]</span>である。そのため、KL情報量を最小化する問題も、以下のように引数の位置によって解が異なることがある。<span class="math display">\[
+            \underset{q}{\operatorname{arg min}} D_{\mathrm{KL}}(p || q) \neq \underset{q}{\operatorname{arg min}} D_{\mathrm{KL}}(q || p)
+            \]</span></p>
+            <p>それぞれの最小化問題で得られる解の特徴は、主に<span class="math inline">\(f(x) = 0 \Rightarrow -\log f(x) = \infty\)</span>となることに起因して、以下のような傾向をもつと言える。</p>
+            <h1 id="operatornamearg-min_q-d_mathrmklp-qについて"><span class="math inline">\(\operatorname{arg min}_q D_{\mathrm{KL}}(p || q)\)</span>について</h1>
+            <p><span class="math inline">\(D_{\mathrm{KL}}(p || q)\)</span>は以下のように変形できる。<span class="math display">\[
+            \begin{aligned}
+            D_{\mathrm{KL}}(p || q) &amp;= \int_{-\infty}^{\infty} p(x) \log \frac{p(x)}{q(x)} \mathrm{d}x\\
+            &amp;= \int_{-\infty}^{\infty} p(x) \log p(x) \mathrm{d}x - \int_{-\infty}^{\infty} p(x) \log q(x) \mathrm{d}x\\
+            &amp;= \mathbb{E}_{x \sim p(x)}[\log p(x)] - \mathbb{E}_{x \sim p(x)}[\log q(x)]
+            \end{aligned}
+            \]</span>このとき、第1項は<span class="math inline">\(q\)</span>と関係なく決まるので、<span class="math inline">\(q\)</span>の最小化問題においては定数とみなせる。よって、KL情報量の最小化問題の解は、以下の最小化問題の解と同じである。<span class="math display">\[
+            \underset{q}{\operatorname{arg min}} \mathbb{E}_{x \sim p(x)}[ -\log q(x)]
+            \]</span></p>
+            <p>上記の最小化問題においては、<span class="math inline">\(p(x) &gt; 0\)</span>である<span class="math inline">\(x\)</span>において<span class="math inline">\(q(x) = 0\)</span>だと、<span class="math inline">\(-\log q(x) = \infty\)</span>となって評価値が無限大に発散してしまう。そのため、<span class="math inline">\(p(x) &gt; 0\)</span>となる領域では<span class="math inline">\(q(x) &gt; 0\)</span>となるように方向づけられる。一方で、<span class="math inline">\(p(x)\)</span>が低いところで<span class="math inline">\(q(x)\)</span>が高い値をとる分には、評価値への直接の影響はない。</p>
+            <p>上記のことから、最小化問題の解は <strong><span class="math inline">\(p\)</span>を取りこぼしなく覆うような確率分布</strong>となる。<span class="math inline">\(p(x)\)</span>が小さいところを取り込むのは問題ないが、<span class="math inline">\(p(x)\)</span>が大きいところを取りこぼすとKL情報量が極端に大きくなってしまう。そのため、<span class="math inline">\(p(x)\)</span>がゼロより大きいところで<span class="math inline">\(q(x)\)</span>もゼロより大きくなることが優先される。</p>
+            <p><span class="math inline">\(p\)</span>が混合正規分布のような多峰性をもつ確率分布で、<span class="math inline">\(q\)</span>が正規分布であるとき、<span class="math inline">\(\operatorname{arg min}_q D_{\mathrm{KL}}(p || q)\)</span>の解は、できるだけすべての峰を覆うような大きな分散の正規分布になる。</p>
+            <h1 id="operatornamearg-min_q-d_mathrmklq-pについて"><span class="math inline">\(\operatorname{arg min}_q D_{\mathrm{KL}}(q || p)\)</span>について</h1>
+            <p><span class="math inline">\(D_{\mathrm{KL}}(q || p)\)</span>は以下のように変形できる。<span class="math display">\[
+            D_{\mathrm{KL}}(q || p) = \mathbb{E}_{x \sim q(x)}[\log q(x)] + \mathbb{E}_{x \sim q(x)}[-\log p(x)]
+            \]</span>すなわち、KL情報量の最小化問題は以下のように書き直せる。<span class="math display">\[
+            \underset{q}{\operatorname{arg min}} \mathbb{E}_{x \sim q(x)}[\log q(x)] + \mathbb{E}_{x \sim q(x)}[-\log p(x)]
+            \]</span></p>
+            <p>上記の最小化問題において、第1項は<span class="math inline">\(q\)</span>が裾野の広い分布であるほど値が小さくなる。第2項は、<span class="math inline">\(p(x)\)</span>が大きい値になるところで<span class="math inline">\(q(x)\)</span>も大きい値になるほど小さくなる。その一方で、<span class="math inline">\(p(x) = 0\)</span>となる領域で<span class="math inline">\(q(x) &gt; 0\)</span>であると、<span class="math inline">\(-\log p(x) = \infty\)</span>となって評価値が無限大に発散してしまう。</p>
+            <p>上記のことから、最小化問題の解は <strong><span class="math inline">\(p\)</span>の低い領域を避けるような確率分布</strong>となる。<span class="math inline">\(p(x)\)</span>が大きくなるところを広く捉えようとする一方で、<span class="math inline">\(p(x)\)</span>が小さいところまで覆ってしまうとKL情報量が極端に大きくなってしまう。そのため、<span class="math inline">\(p(x)\)</span>がゼロに近いところで<span class="math inline">\(q(x)\)</span>もゼロに近くなることが優先される。</p>
+            <p><span class="math inline">\(p\)</span>が混合正規分布のような多峰性をもつ確率分布で、<span class="math inline">\(q\)</span>が正規分布であるとき、<span class="math inline">\(\operatorname{arg min}_q D_{\mathrm{KL}}(q || p)\)</span>の解は、ひとつの峰を狙って捉えるような比較的小さな分散の正規分布になる。</p>
+        </article>
+    </main>
+</body>
+</html>
