@@ -130,15 +130,6 @@ p(x_k| y_{0:k-1})
 \end{aligned}
 $$
 のようになる。
-$$
-\begin{aligned}
-p(x_k| y_{0:k-1})
-&= \frac{p(x_k, y_{0:k-1})}{p(y_{0:k-1})}\\
-&= \frac{\int p(x_{0:k}, y_{0:k-1}) \mathrm{d}x_{0:k-1}}{\int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-1}}\\
-&= \frac{\int p(x_k| x_{k-1}) \int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-2} \mathrm{d}x_{k-1}}{\int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-1}}\\
-&= \int p(x_k| x_{k-1}) \frac{\int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-2}}{\int p(x_{0:k-1}, y_{0:k-1}) \mathrm{d}x_{0:k-1}} \mathrm{d}x_{k-1}
-\end{aligned}
-$$
 ここで、
 $$
 \begin{aligned}
