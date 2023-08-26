@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>加速度制御とバイラテラル制御</title>
+<link href="mystyle.css" rel="stylesheet" type="text/css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+</head>
+<body>
+    <header id="home">
+        <h1>加速度制御とバイラテラル制御</h1>
+    </header>
+    <nav>
+        <ul>
+        <li><a href="#概要">概要</a></li>
+        <li><a href="#加速度制御に基づくインピーダンス制御">加速度制御に基づくインピーダンス制御</a>
+        <ul>
+        <li><a href="#余談１平衡点の時間変化がある場合">余談１：平衡点の時間変化がある場合</a></li>
+        <li><a href="#余談２制御系の特性">余談２：制御系の特性</a></li>
+        </ul></li>
+        <li><a href="#モード空間でのバイラテラル制御系の設計">モード空間でのバイラテラル制御系の設計</a>
+        <ul>
+        <li><a href="#座標変換">座標変換</a></li>
+        <li><a href="#差のモードの運動制御">差のモードの運動制御</a></li>
+        <li><a href="#和のモードの運動制御">和のモードの運動制御</a></li>
+        <li><a href="#元の座標系での記述">元の座標系での記述</a></li>
+        </ul></li>
+        <li><a href="#参考文献">参考文献</a></li>
+        </ul>
+    </nav>
+    <main>
+        <article>
+            <h1 id="概要">概要</h1>
+            <ul>
+            <li>加速度制御に基づくバイラテラル制御の設計は、モード空間における制御インピーダンスの設計として考えることができる。</li>
+            <li>位置、速度、力の応答値から加速度指令値を算出して加速度制御することは、制御対象がフィードバックゲインによって定まる機械インピーダンスをもつようにインピーダンス制御しているものとみなすことができる。</li>
+            <li>加速度制御された2つの制御対象の和のモードと差のモードについて、それぞれ所望の機械インピーダンスを設定して、それに対応するフィードバック系を設計することで、理想的なバイラテラル制御が実現できる。</li>
+            </ul>
+            <h1 id="加速度制御に基づくインピーダンス制御">加速度制御に基づくインピーダンス制御</h1>
+            <p>物理学における運動という単語は、<a href="https://ja.wikipedia.org/wiki/%E9%81%8B%E5%8B%95_(%E7%89%A9%E7%90%86%E5%AD%A6)">wikipediaの記事</a>曰く、「物体と参照系の位置関係が変化すること」と説明される。ニュートン力学において運動は加速度を使って表されることから、制御対象の加速度を思い通りの値にすることで、制御対象の運動を思い通りに制御できることになる。</p>
+            <p>加速度制御（<em>Luh et al., 1980; 堀, 1988; Ohnishi et al., 1996</em>）を利用することで、制御対象の機械的特性を制御することができる。以下の微分方程式で記述されるバネ－マス－ダンパ系の運動を考える。<span class="math display">\[
+            m \ddot{x} + d \dot{x} + k x = f
+            \]</span>ここで<span class="math inline">\(m\)</span>は慣性、<span class="math inline">\(d\)</span>は粘性、<span class="math inline">\(k\)</span>は弾性であり、0でないスカラーまたは正定値対称行列とする。この式を整理すると以下のようにできる。<span class="math display">\[
+            \ddot{x} = - m^{-1} k x -  m^{-1} d \dot{x} + m^{-1} f
+            \]</span>この式の右辺にある<span class="math inline">\(x\)</span>、<span class="math inline">\(\dot{x}\)</span>、<span class="math inline">\(f\)</span>に応答値を代入し、算出された左辺の加速度<span class="math inline">\(\ddot{x}\)</span>を指令値として加速度制御すると、機械定数が<span class="math inline">\(m\)</span>、<span class="math inline">\(d\)</span>、<span class="math inline">\(k\)</span>である機械系の運動が再現できる。さらにここで、<span class="math display">\[
+            \begin{aligned}
+            K_{\mathrm{p}} &amp;\triangleq m^{-1} k\\
+            K_{\mathrm{v}} &amp;\triangleq m^{-1} d\\
+            K_{\mathrm{f}} &amp;\triangleq m^{-1}
+            \end{aligned}
+            \]</span>と定数を定義すれば、制御則は以下のような位置のPD制御＋力のP制御の形になる。<span class="math display">\[
+            \begin{aligned}
+            \ddot{x}^{\mathrm{ref}} &amp;= -K_{\mathrm{p}} x -  K_{\mathrm{v}} \dot{x} + K_{\mathrm{f}} f\\
+            &amp;= -(K_{\mathrm{p}} + K_{\mathrm{v}} s) x + K_{\mathrm{f}} f
+            \end{aligned}
+            \]</span>ただし、微分演算の一部を<span class="math inline">\(s\)</span>で表した。このときの系の機械定数は以下のようになる。<span class="math display">\[
+            \begin{aligned}
+            m &amp;= K_{\mathrm{f}}^{-1}\\
+            d &amp;= K_{\mathrm{f}}^{-1} K_{\mathrm{v}}\\
+            k &amp;= K_{\mathrm{f}}^{-1} K_{\mathrm{p}}
+            \end{aligned}
+            \]</span></p>
+            <p>すなわち、<strong>加速度制御系に対して位置と力のフィードバックをすることで、制御系は制御ゲインに対応する機械定数をもつように振る舞う</strong>。系が所望の機械定数をもつかのように運動を制御することから、この制御則はインピーダンス制御（<em>Hogan, 1985</em>）に他ならない。</p>
+            <p>この方法によるインピーダンス制御系の設計は、制御ゲインによって系の機械定数がほぼ直接指定できるという明快さに利点があると思う。外乱オブザーバ（<em>Ohishi et al., 1983</em>）を使って設計された加速度制御系では、制御対象のモデル化誤差の影響は独立した内部ループで外乱として抑圧され、閉ループ系は規範モデルのとおりに振る舞う。そのため、外部ループでは制御対象の元々の機械インピーダンスを考慮することなくシンプルに所望の振舞いを設計できる。この方法は、制御対象の重力や摩擦力、コリオリ力、アクチュエータ間の干渉などを陽に計算して補償する計算トルク法と比べて実装が簡単であり、モデル化誤差に対する頑健性も高い。</p>
+            <h2 id="余談１平衡点の時間変化がある場合">余談１：平衡点の時間変化がある場合</h2>
+            <p>より一般的に、系の平衡点<span class="math inline">\(x_\mathrm{o}\)</span>が時間変化する場合の運動方程式は以下のようになる。<span class="math display">\[
+            m (\ddot{x} - \ddot{x}_\mathrm{o}) + d (\dot{x} - \dot{x}_\mathrm{o}) + k (x - x_\mathrm{o}) = f
+            \]</span>これに対応するフィードバック制御則は、以下のような、加速度フィードフォワード項＋位置のPD制御＋力のP制御の形になる。<span class="math display">\[
+            \begin{aligned}
+            \ddot{x}^{\mathrm{ref}} &amp;= \ddot{x}_\mathrm{o} - m^{-1} k (x - x_\mathrm{o}) -  m^{-1} d (\dot{x} - \dot{x}_\mathrm{o}) + m^{-1} f\\
+            &amp;= \ddot{x}_\mathrm{o} + (K_{\mathrm{p}} + K_{\mathrm{v}} s) (x_\mathrm{o} - x) + K_{\mathrm{f}} f
+            \end{aligned}
+            \]</span>なお、反力の目標値<span class="math inline">\(f_\mathrm{o}\)</span>を入れた制御則も考えることができるが、これは次式のとおり、平衡点として<span class="math inline">\(x_\mathrm{o}\)</span>の代わりに<span class="math inline">\(x_\mathrm{o}&#39; \triangleq x_\mathrm{o} - \frac{K_{\mathrm{f}}}{K_{\mathrm{p}} + K_{\mathrm{v}} s + s^2} f_\mathrm{o}\)</span>を使った形に帰着できる。すなわち、<strong>反力の目標値<span class="math inline">\(f_\mathrm{o}\)</span>を導入しても平衡点<span class="math inline">\(x_{\mathrm{o}}\)</span>をずらすことと実質的に等価であり、上述したインピーダンス制御の枠組みを超えることはない</strong>。<span class="math display">\[
+            \begin{aligned}
+            \ddot{x}^{\mathrm{ref}} &amp;= \ddot{x}_\mathrm{o} + (K_{\mathrm{p}} + K_{\mathrm{v}} s) (x_\mathrm{o} - x) + K_{\mathrm{f}} (f - f_\mathrm{o})\\
+            &amp;= \ddot{x}_\mathrm{o} + (K_{\mathrm{p}} + K_{\mathrm{v}} s) (x_\mathrm{o} - x) + K_{\mathrm{f}} f - K_{\mathrm{f}} f_\mathrm{o}\\
+            &amp;= \ddot{x}_\mathrm{o} + (K_{\mathrm{p}} + K_{\mathrm{v}} s) (x_\mathrm{o} - x) + K_{\mathrm{f}} f - \frac{K_{\mathrm{p}} + K_{\mathrm{v}} s + s^2}{K_{\mathrm{p}} + K_{\mathrm{v}} s + s^2} K_{\mathrm{f}} f_\mathrm{o}\\
+            &amp;= \ddot{x}_\mathrm{o} + (K_{\mathrm{p}} + K_{\mathrm{v}} s) (x_\mathrm{o} - x) + K_{\mathrm{f}} f - s^2\frac{K_{\mathrm{f}}}{K_{\mathrm{p}} + K_{\mathrm{v}} s + s^2} f_\mathrm{o} - (K_{\mathrm{p}} + K_{\mathrm{v}} s) \frac{K_{\mathrm{f}}}{K_{\mathrm{p}} + K_{\mathrm{v}} s + s^2} f_\mathrm{o}\\
+            &amp;= s^2 \left( x_\mathrm{o} - \frac{K_{\mathrm{f}}}{K_{\mathrm{p}} + K_{\mathrm{v}} s + s^2} f_\mathrm{o} \right) + (K_{\mathrm{p}} + K_{\mathrm{v}} s) \left[ \left( x_\mathrm{o} - \frac{K_{\mathrm{f}}}{K_{\mathrm{p}} + K_{\mathrm{v}} s + s^2} f_\mathrm{o} \right) - x \right] + K_{\mathrm{f}} f\\
+            &amp;= \ddot{x}_\mathrm{o}&#39; + (K_{\mathrm{p}} + K_{\mathrm{v}} s) (x_\mathrm{o}&#39; - x) + K_{\mathrm{f}} f
+            \end{aligned}
+            \]</span><span class="math display">\[
+            x_\mathrm{o}&#39; \triangleq x_\mathrm{o} - \frac{K_{\mathrm{f}}}{K_{\mathrm{p}} + K_{\mathrm{v}} s + s^2} f_\mathrm{o} = x_\mathrm{o} - \frac{1}{m s^2 + d s + k} f_\mathrm{o}
+            \]</span></p>
+            <h2 id="余談２制御系の特性">余談２：制御系の特性</h2>
+            <p>バネ－マス－ダンパ系の位置から力までの伝達関数<span class="math inline">\(G\)</span>を変形すると、以下のようになる。<span class="math display">\[
+            \begin{aligned}
+            G &amp;\triangleq m s^2 + d s + k\\
+            &amp;= (m^{-1} k k^{-1})^{-1} \left[ s^2 + \sqrt{m^{-1}} \sqrt{k} \left( \sqrt{m} \sqrt{k} \right)^{-1} d s + m^{-1} k \right]\\
+            &amp;= (\Omega_{\mathrm{n}} K)^{-1} \left[ s^2 + 2 \omega_{\mathrm{n}} \zeta s + \Omega_{\mathrm{n}} \right]
+            \end{aligned}
+            \]</span>各定数の定義は以下のとおり。<span class="math display">\[
+            \begin{aligned}
+            K &amp;\triangleq k^{-1}\\
+            \Omega_{\mathrm{n}} &amp;\triangleq m^{-1} k\\
+            \omega_{\mathrm{n}} &amp;\triangleq \sqrt{m^{-1}} \sqrt{k}\\
+            \zeta &amp;\triangleq \frac{1}{2} \left( \sqrt{m} \sqrt{k} \right)^{-1} d
+            \end{aligned}
+            \]</span>ただし、<span class="math inline">\(m\)</span>と<span class="math inline">\(k\)</span>とはどちらもスカラーもしくは正定値対称行列とし、平方根記号<span class="math inline">\(\sqrt{}\)</span>はスカラーの平方根もしくは行列の主平方根行列を表す。このとき各定数は制御ゲインを使って以下のように表せる。<span class="math display">\[
+            \begin{aligned}
+            K &amp;= K_{\mathrm{p}}^{-1} K_{\mathrm{f}}\\
+            \Omega_{\mathrm{n}} &amp;= K_{\mathrm{p}}\\
+            \omega_{\mathrm{n}} &amp;= \sqrt{K_{\mathrm{f}}} \sqrt{K_{\mathrm{f}}^{-1} K_{\mathrm{p}}}\\
+            \zeta &amp;= \frac{1}{2} \left[ \sqrt{K_{\mathrm{f}}^{-1}} \sqrt{K_{\mathrm{f}}^{-1} K_{\mathrm{p}}} \right]^{-1} K_{\mathrm{f}}^{-1} K_{\mathrm{v}}
+            \end{aligned}
+            \]</span></p>
+            <p>特に、<span class="math inline">\(m\)</span>と<span class="math inline">\(k\)</span>との固有ベクトルがすべて一致する（あるいはどちらもスカラーである）ときは、<span class="math inline">\(m^{-1} k\)</span>も正定値対称行列になることから、<span class="math display">\[
+            \Omega_{\mathrm{n}} \triangleq m^{-1} k = \left( \sqrt{m^{-1}} \sqrt{k} \right)^2 = \omega_{\mathrm{n}}^2
+            \]</span>となり、制御ゲインとの関係も以下のように表せる。<span class="math display">\[
+            \begin{aligned}
+            K &amp;= K_{\mathrm{p}}^{-1} K_{\mathrm{f}}\\
+            \omega_{\mathrm{n}} &amp;= \sqrt{K_{\mathrm{p}}}\\
+            \zeta &amp;= \frac{1}{2} \sqrt{K_{\mathrm{p}}^{-1}} K_{\mathrm{d}}
+            \end{aligned}
+            \]</span>制御系の自然角周波数<span class="math inline">\(\omega_{\mathrm{n}}\)</span>と減衰定数<span class="math inline">\(\zeta\)</span>が位置制御のフィードバックゲインによって決定されることがわかる。</p>
+            <h1 id="モード空間でのバイラテラル制御系の設計">モード空間でのバイラテラル制御系の設計</h1>
+            <p>バイラテラル制御は、2つの制御対象（リーダーとフォロワー）を制御的に結合し、その結合系の運動を制御することで遠隔操作を実現する技術である。バイラテラル制御の制御系は、操作者や環境から見たリーダーとフォロワーとの機械的振舞いを制御することから、インピーダンス制御として設計するのが直感的である。</p>
+            <p>このとき、リーダーとフォロワーのそれぞれの運動を個別に扱うよりも、結合系の機能的単位ごとに制御器を設計するほうが直感的である（機能性に基づく制御系設計（<em>Tsuji et al., 2006; Tsuji et al., 2007</em>））。バイラテラル制御においては、リーダー・フォロワーの相対位置を一定にしつつ、操作者や環境から見た重心系の運動が軽いことが好ましい。相対運動は両者の位置の差で表され、重心運動は両者の位置の和で表される。よって、リーダーとフォロワーそれぞれの座標で記述される座標系の代わりに、それらの差（相対運動）と和（重心運動）との座標で記述されるモード座標系で制御系を扱うほうがわかりやすい。各モードの運動が所望のものになるようにそれぞれ制御インピーダンスを設計することで、加速度制御を通じて理想的なバイラテラル制御が実現できる。</p>
+            <h2 id="座標変換">座標変換</h2>
+            <p>リーダーとフォロワーの位置をそれぞれ<span class="math inline">\(x_{\mathrm{L}}\)</span>、<span class="math inline">\(x_{\mathrm{F}}\)</span>とおく。また、差のモードの位置を<span class="math inline">\(x_{\mathrm{d}}\)</span>、和のモードの位置を<span class="math inline">\(x_{\mathrm{s}}\)</span>とおく。その他の変数についても同様の命名規則で添え字をつける。</p>
+            <p>リーダー・フォロワーの座標系からモード座標系への変換を次式のように定義する。<span class="math display">\[
+            \begin{aligned}
+            x_{\mathrm{d}} &amp;\triangleq x_{\mathrm{L}} - x_{\mathrm{F}}\\
+            x_{\mathrm{s}} &amp;\triangleq \frac{1}{2} (x_{\mathrm{L}} + x_{\mathrm{F}})
+            \end{aligned}
+            \]</span><span class="math inline">\(x_{\mathrm{d}}\)</span>はフォロワーからみたリーダーの相対位置を表し、<span class="math inline">\(x_{\mathrm{s}}\)</span>はリーダーとフォロワーの幾何中心の位置を表す。ここではリーダーとフォロワーのノミナル慣性が同じであると仮定し、幾何中心が重心と一致するものとして扱う。この逆変換は以下のようになる。<span class="math display">\[
+            \begin{aligned}
+            x_{\mathrm{L}} &amp;= x_{\mathrm{s}} + \frac{1}{2} x_{\mathrm{d}}\\
+            x_{\mathrm{F}} &amp;= x_{\mathrm{s}} - \frac{1}{2} x_{\mathrm{d}}
+            \end{aligned}
+            \]</span></p>
+            <p>また、座標変換に対して仕事<span class="math inline">\(W\)</span>が不変であることから、モード座標に対応する力（<span class="math inline">\(f_{\mathrm{d}}\)</span>と<span class="math inline">\(f_{\mathrm{s}}\)</span>）について以下の関係が成り立つ。<span class="math display">\[
+            \begin{aligned}
+            W &amp;\triangleq x_{\mathrm{L}}^{\top} f_{\mathrm{L}} + x_{\mathrm{F}}^{\top} f_{\mathrm{F}}\\
+            &amp;= \left( x_{\mathrm{s}} + \frac{1}{2} x_{\mathrm{d}} \right)^{\top} f_{\mathrm{L}} + \left( x_{\mathrm{s}} - \frac{1}{2} x_{\mathrm{d}} \right)^{\top} f_{\mathrm{F}}\\
+            &amp;= x_{\mathrm{d}}^{\top} \left( \frac{1}{2} f_{\mathrm{L}} - \frac{1}{2} f_{\mathrm{F}} \right) + x_{\mathrm{s}}^{\top} \left( f_{\mathrm{L}} + f_{\mathrm{F}} \right)\\
+            &amp;\equiv x_{\mathrm{d}}^{\top} f_{\mathrm{d}} + x_{\mathrm{s}}^{\top} f_{\mathrm{s}}
+            \end{aligned}
+            \]</span>よって、力の座標変換は以下のように表される。<span class="math display">\[
+            \begin{aligned}
+            f_{\mathrm{d}} &amp;= \frac{1}{2} (f_{\mathrm{L}} - f_{\mathrm{F}})\\
+            f_{\mathrm{s}} &amp;= f_{\mathrm{L}} + f_{\mathrm{F}}
+            \end{aligned}
+            \]</span></p>
+            <h2 id="差のモードの運動制御">差のモードの運動制御</h2>
+            <p>まずは、差のモードの運動方程式を考える。<span class="math display">\[
+            m_{\mathrm{d}} \ddot{x}_{\mathrm{d}} + d_{\mathrm{d}} \dot{x}_{\mathrm{d}} + k_{\mathrm{d}} x_{\mathrm{d}} = f_{\mathrm{d}}
+            \]</span>リーダーとフォロワーの相対位置は常に一定であってほしいので、差のモードでは運動が完全に静止していることが望ましい。初期位置と初期速度がどちらもゼロの場合、これは仮想慣性を無限大にするだけで実現できる。<span class="math display">\[
+            \ddot{x}_{\mathrm{d}} = - m_{\mathrm{d}}^{-1} k_{\mathrm{d}} x_{\mathrm{d}} - m_{\mathrm{d}}^{-1} d_{\mathrm{d}} \dot{x}_{\mathrm{d}} + m_{\mathrm{d}}^{-1} f_{\mathrm{d}} \rightarrow 0
+            \]</span>すなわち、差のモードの加速度指令値を単純にゼロにすれば、リーダーとフォロワーとの相対位置の加速度がゼロになるので、理想的には完全な同期が実現できる。</p>
+            <p>しかし、初期位置と初期速度はゼロとは限らず、加えて現実の加速度制御では高周波帯域の外乱を完全には抑圧できないので、加速度指令値をゼロにするだけだと位置や速度のドリフトが生じるおそれがある。よって、仮想弾性と仮想粘性も無限大に近づけて剛体の運動を再現する必要がある。</p>
+            <p><span class="math inline">\(k\)</span>、<span class="math inline">\(d\)</span>、<span class="math inline">\(m\)</span>を無限大にしていくとき、各定数の関係が以下のとおりになるようにする。<span class="math display">\[
+            \begin{aligned}
+              m_{\mathrm{d}}^{-1} &amp;\rightarrow 0 \\
+              m_{\mathrm{d}}^{-1} k_{\mathrm{d}} &amp;\rightarrow K_{\mathrm{p}} \\
+              m_{\mathrm{d}}^{-1} d_{\mathrm{d}} &amp;\rightarrow K_{\mathrm{v}}
+            \end{aligned}
+            \]</span>すると、加速度指令値は位置のPD制御の形で計算されるようになる。<span class="math display">\[
+            \begin{aligned}
+              \ddot{x}_{\mathrm{d}}^{\mathrm{ref}} &amp;= - m_{\mathrm{d}}^{-1} k_{\mathrm{d}} x_{\mathrm{d}} - m_{\mathrm{d}}^{-1} d_{\mathrm{d}} \dot{x}_{\mathrm{d}} + m_{\mathrm{d}}^{-1} f_{\mathrm{d}} \\
+              &amp;\rightarrow  - K_{\mathrm{p}} x_{\mathrm{d}} - K_{\mathrm{v}} \dot{x}_{\mathrm{d}}
+            \end{aligned}
+            \]</span></p>
+            <h2 id="和のモードの運動制御">和のモードの運動制御</h2>
+            <p>和のモードについても運動方程式を考える。<span class="math display">\[
+            m_{\mathrm{s}} \ddot{x}_{\mathrm{s}} + d_{\mathrm{s}} \dot{x}_{\mathrm{s}} + k_{\mathrm{s}} x_{\mathrm{s}} = f_{\mathrm{s}}
+            \]</span>和のモードの運動は、リーダーとフォロワーとの幾何中心（両者の慣性が同じなら重心でもある）の運動とみなせる。和のモードの運動に弾性と粘性がまったくなく、慣性が十分に小さいとき、操作者はリーダとフォロワーが存在しないかのように感じられる。これを理想的な挙動として、仮想質量の逆数を以下のように置き換える。<span class="math display">\[
+            \begin{aligned}
+              m_{\mathrm{s}}^{-1} &amp;\rightarrow K_{\mathrm{f}} \\
+              k_{\mathrm{d}} &amp;\rightarrow 0 \\
+              d_{\mathrm{d}} &amp;\rightarrow 0
+            \end{aligned}
+            \]</span>すると、加速度指令値は力の比例制御の形で計算されるようになる。<span class="math display">\[
+            \begin{aligned}
+              \ddot{x}_{\mathrm{s}}^{\mathrm{ref}} &amp;= - m_{\mathrm{s}}^{-1} k_{\mathrm{s}} x_{\mathrm{s}} - m_{\mathrm{s}}^{-1} d_{\mathrm{s}} \dot{x}_{\mathrm{s}} + m_{\mathrm{s}}^{-1} f_{\mathrm{s}} \\
+              &amp;\rightarrow K_{\mathrm{f}} f_{\mathrm{s}}
+            \end{aligned}
+            \]</span>ここで、力のフィードバックゲイン<span class="math inline">\(K_{\mathrm{f}}\)</span>は仮想慣性の逆数なので、値を大きくするほど重心系は軽い運動をする。特に<span class="math inline">\(K_{\mathrm{f}} \rightarrow \infty\)</span>のとき、操作者はリーダーとフォロワーとを介して環境と接触しているにもかかわらず、リーダー・フォロワーが存在しないかのように環境からの反力を感じることができる。</p>
+            <p>もうひとつの例として、和のモードでの仮想慣性が重心系のノミナル慣性と一致する場合を考える。リーダーとフォロワーの元々の慣性を<span class="math inline">\(m_{\mathrm{n}}\)</span>とおくと、重心系の元の慣性は<span class="math inline">\(2 m_{\mathrm{n}}\)</span>となる。よって、<span class="math inline">\(K_{\mathrm{f}} = \frac{1}{2} m_{\mathrm{n}}^{-1}\)</span>と設定すると、和のモードの仮想慣性は元の重心系の慣性と同一になる。</p>
+            <h2 id="元の座標系での記述">元の座標系での記述</h2>
+            <p>差のモードと和のモードでそれぞれ設計された制御系を元の座標系に変換すると、以下のようになる。<span class="math display">\[
+            \begin{aligned}
+              \ddot{x}_{\mathrm{L}}^{\mathrm{ref}} &amp;= \frac{1}{2} \ddot{x}_{\mathrm{d}} + \ddot{x}_{\mathrm{s}} \\
+              &amp;= - \frac{1}{2} K_{\mathrm{p}} x_{\mathrm{d}} - \frac{1}{2} K_{\mathrm{v}} \dot{x}_{\mathrm{d}} + K_{\mathrm{f}} f_{\mathrm{s}} \\
+              &amp;= \frac{1}{2} K_{\mathrm{p}} (x_{\mathrm{F}} - x_{\mathrm{L}}) + \frac{1}{2} K_{\mathrm{v}} (\dot{x}_{\mathrm{F}} - \dot{x}_{\mathrm{L}}) + K_{\mathrm{f}} (f_{\mathrm{L}} + f_{\mathrm{F}})
+            \end{aligned}
+            \]</span><span class="math display">\[
+            \begin{aligned}
+              \ddot{x}_{\mathrm{F}}^{\mathrm{ref}} &amp;= -\frac{1}{2} \ddot{x}_{\mathrm{d}} + \ddot{x}_{\mathrm{s}} \\
+              &amp;= \frac{1}{2} K_{\mathrm{p}} x_{\mathrm{d}} + \frac{1}{2} K_{\mathrm{v}} \dot{x}_{\mathrm{d}} + K_{\mathrm{f}} f_{\mathrm{s}} \\
+              &amp;= \frac{1}{2} K_{\mathrm{p}} (x_{\mathrm{L}} - x_{\mathrm{F}}) + \frac{1}{2} K_{\mathrm{v}} (\dot{x}_{\mathrm{L}} - \dot{x}_{\mathrm{F}}) + K_{\mathrm{f}} (f_{\mathrm{L}} + f_{\mathrm{F}})
+            \end{aligned}
+            \]</span></p>
+            <h1 id="参考文献">参考文献</h1>
+            <ol type="1">
+            <li>J. Luh, M. Walker, and R. Paul, “Resolved-acceleration control of mechanical manipulators,” IEEE Transactions on Automatic Control, vol. 25, no. 3, pp. 468–474, 1980.</li>
+            <li>堀 洋一, “加速度制御形サーボ系,” 電気学会論文誌Ｄ（産業応用部門誌）, vol. 108, no. 7, pp. 672–677, 1988.</li>
+            <li>K. Ohnishi, M. Shibata, and T. Murakami, “Motion Control for Advanced Mechatronics,” IEEE/ASME Transactions on Mechatronics, vol. 1, no. 1, pp. 56-67, 1996.</li>
+            <li>N. Hogan, “Impedance Control: An Approach to Manipulation: Part I—Theory,” Journal of Dynamic Systems, Measurement, and Control, vol. 107, no. 1, pp. 1–7, 1985.</li>
+            <li>K. Ohishi, K. Ohnishi, and K. Miyachi, “Torque-Speed Regulation of DC Motor Based on Load Torque Estimation Method,” in Proceedings of the IEEJ International Power Electronics Conference, 1983, vol. 2, pp. 1209–1218.</li>
+            <li>T. Tsuji, K. Natori, H. Nishi, and K. Ohnishi, “A Controller Design Method of Bilateral Control System,” EPE Journal, vol. 16, no. 2, pp. 22–27, 2006.</li>
+            <li>T. Tsuji, K. Ohnishi, and A. Sabanovic, “A Controller Design Method Based on Functionality,” IEEE Transactions on Industrial Electronics, vol. 54, no. 6, pp. 3335–3343, 2007.</li>
+            </ol>
+        </article>
+    </main>
+</body>
+</html>
