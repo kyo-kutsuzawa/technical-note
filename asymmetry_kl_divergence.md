@@ -4,7 +4,7 @@ title: KL情報量の非対称性
 
 # 概要
 
-- KL情報量は2つの確率分布の違いを測る指標だが、対称性をもたないので、確率分布の最適化において$D_{\mathrm{KL}}(p \parallel q)$を使うか$D_{\mathrm{KL}}(q \parallel p)$を使うかで解が異なることがある。それぞれの解は、$\lim_{x \rightarrow 0}(-\log x) = \infty$であることに起因して異なる傾向を示す。
+- KL情報量は2つの確率分布の違いを測る指標だが、対称性をもたないので、確率分布の最適化において$D_{\mathrm{KL}}(p \parallel q)$を使うか$D_{\mathrm{KL}}(q \parallel p)$を使うかで解が異なることがある。
 - $\operatorname{arg min}_q D_{\mathrm{KL}}(p \parallel q)$の解は、$p$を取りこぼしなく覆うような確率分布となる（包括的な分布）。
 	- $q$が正規分布のときは、できるだけすべての峰（モード）を覆うような大きな分散の正規分布になる。
 - $\operatorname{arg min}_q D_{\mathrm{KL}}(q \parallel p)$の解は、$p$の低い領域を避けるような確率分布となる（排他的な分布）。
