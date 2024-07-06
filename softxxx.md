@@ -5,9 +5,9 @@ title: Softなんとか
 # 概要
 
 - softmax写像は最適化問題の形で定式化できる。この定式化はいくつかの側面で見ることができる。
-    1. argmax写像（これも最適化問題として定式化できる）にエントロピー正則化を加えたものと解釈できる。
-    1. 自由エネルギー（ヘルムホルツエネルギー）の最小化問題と解釈できる。
-    1. 最適値のほうは単体上に制限された負のエントロピー関数のルジャンドル=フェンシル変換として表せて、その値はlog-sum-exp関数で計算できる。
+    1. 数ベクトルのargmax写像を最適化問題として定式化したときの目的関数にエントロピー正則化を加えたものと解釈できる。
+    1. ヘルムホルツエネルギーの最小化問題と解釈できる。
+    1. 最適値は単体上に制限された負のエントロピー関数のLegendre-Fenchel変換として表せて、その値はlog-sum-exp関数で計算できる。
 
 # softmax写像
 
@@ -37,7 +37,7 @@ $$
 
 ## argmax写像との関係
 
-argmax写像を次式のように定義する。
+数ベクトル$\boldsymbol{z} \in \mathbb{R}^n$に対するargmax写像を次式のように定義する。
 $$
 \mathrm{argmax}(\boldsymbol{z}) = \mathop{\arg \max}_{\boldsymbol{x} \in \Delta^{n-1}} \left[ \boldsymbol{x}^{\top}\boldsymbol{z} \right]
 $$
@@ -50,13 +50,13 @@ $\boldsymbol{z}$が複数の要素で最大値をとるときは解も複数に�
 softmax写像は、上記のargmax写像の拡張版とみることができる。
 argmax写像の目的関数に正則化項$\left( -\sum_{j=1}^n x_j \log x_j \right)$を加えた形である。
 このとき$\lambda$は正則化の強さを定める定数とみなせる。
-$\boldsymbol{x}$を離散確率分布と解釈すると、この正則化項は情報理論におけるエントロピーと解釈することができる。
+$\boldsymbol{x}$を離散確率分布と解釈すると、この正則化項は情報理論におけるエントロピーと解釈することができ、この正則化項によって解のエントロピーが大きくなるようにはたらく。
 すなわち、**softmax写像はargmax写像にエントロピー正則化を加えたものと解釈できる**。
 argmax写像は解が複数ある多価写像であるが、正則化を加えたsoftmax写像は解が唯一に定まる。
 
 ## 自由エネルギー最小化との関係
 
-softmax写像は自由エネルギー（ヘルムホルツエネルギー）を最小化する写像とも解釈できる。
+softmax写像はヘルムホルツエネルギー（自由エネルギー）を最小化する写像とも解釈できる。
 softmax写像を最適化問題として定式化したときの目的関数に$-1$を乗じたものを考える。
 $$
 -\boldsymbol{x}^{\top}\boldsymbol{z} - \lambda^{-1} \left( -\sum_{j=1}^n x_j \log x_j \right)
@@ -66,7 +66,7 @@ $\lambda$が逆温度であることから$\lambda^{-1}$は温度とみなせる
 ここで、$(-\boldsymbol{x}^{\top}\boldsymbol{z})$を内部エネルギーだと解釈してみる。
 すると、上記の目的関数の値は熱力学におけるヘルムホルツエネルギーに対応する。
 熱力学においてヘルムホルツエネルギー$F$は、内部エネルギー$U$、温度$T$、エントロピー$S$に対して$F = U - T S$の関係がある。
-このことから、softmax写像は自由エネルギー$F$を使って以下のように表せる。
+このことから、softmax写像はヘルムホルツエネルギー$F$を使って以下のように表せる。
 $$
 \begin{aligned}
 \mathrm{softmax}(\boldsymbol{z})
@@ -75,7 +75,7 @@ $$
 &= \mathop{\arg \min}_{\boldsymbol{x} \in \Delta^{n-1}} F
 \end{aligned}
 $$
-すなわち、**softmax写像は自由エネルギーを最小化する写像とも解釈できる**。
+すなわち、**softmax写像はヘルムホルツエネルギーを最小化する写像とも解釈できる**。
 
 ## 最適値について
 
@@ -92,23 +92,23 @@ $$
 $$
 \mathrm{softmax}(\boldsymbol{z}) = \mathop{\arg \max}_{\boldsymbol{x} \in \mathbb{R}^n} \left[ \boldsymbol{x}^{\top}\boldsymbol{z} - \psi(\boldsymbol{x}) \right]
 $$
-なお、$\psi$は単体$\Delta^{n-1}$の外で$+\infty$の値をとるので、上記の最適化問題では制約条件が不要になる。
+なお、$\psi$は単体$\Delta^{n-1}$の外で$+\infty$の値をとるので、上記の最適化問題では$\boldsymbol{x}$の制約条件が不要になっている。
 
 上記の最適化問題の最適値は以下の形で表せる。
 $$
 \max_{x \in \mathbb{R}^n} \left[ \boldsymbol{x}^{\top}\boldsymbol{z} - \psi(\boldsymbol{x}) \right]
 $$
-これは$\psi$の[ルジャンドル=フェンシル変換](https://ja.wikipedia.org/wiki/%E5%87%B8%E5%85%B1%E5%BD%B9%E6%80%A7)の形である。
-よって、以下のように表せる。
+これは$\psi$の[Legendre-Fenchel変換](https://ja.wikipedia.org/wiki/%E5%87%B8%E5%85%B1%E5%BD%B9%E6%80%A7)の形である。
+元の関数に上付き星印を付けて、以下のように表せる。
 $$
-\psi^*(\boldsymbol{z}) = \max_{x \in \mathbb{R}^n} \left[ \boldsymbol{x}^{\top}\boldsymbol{z} - \psi(\boldsymbol{x}) \right]
+\psi^{\star}(\boldsymbol{z}) = \max_{x \in \mathbb{R}^n} \left[ \boldsymbol{x}^{\top}\boldsymbol{z} - \psi(\boldsymbol{x}) \right]
 $$
 $\psi^*(\boldsymbol{z})$の値は以下の式で計算できる。
 $$
-\psi^*(\boldsymbol{z}) = \lambda^{-1} \log \left[ \sum_{j=1}^n \exp(\lambda z_j) \right]
+\psi^{\star}(\boldsymbol{z}) = \lambda^{-1} \log \left[ \sum_{j=1}^n \exp(\lambda z_j) \right]
 $$
-これはいわゆるlog-sum-exp関数である。
-つまり、softmax写像を最適化問題として定式化したとき、**最適値は負のエントロピー関数のルジャンドル=フェンシル変換であり、その値はlog-sum-exp関数で計算できる**。
+これはいわゆる（逆温度パラメータ付きの）log-sum-exp関数である。
+つまり、softmax写像を最適化問題として定式化したとき、その問題の**最適値は負のエントロピー関数のLegendre-Fenchel変換であり、その値はlog-sum-exp関数で計算できる**。
 
 # 参考文献
 

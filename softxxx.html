@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Softなんとか</title>
+<link href="mystyle.css" rel="stylesheet" type="text/css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+</head>
+<body>
+    <header id="home">
+        <h1>Softなんとか</h1>
+    </header>
+    <nav>
+        <ul>
+        <li><a href="#概要">概要</a></li>
+        <li><a href="#softmax写像">softmax写像</a>
+        <ul>
+        <li><a href="#最適化問題としての定式化">最適化問題としての定式化</a></li>
+        <li><a href="#argmax写像との関係">argmax写像との関係</a></li>
+        <li><a href="#自由エネルギー最小化との関係">自由エネルギー最小化との関係</a></li>
+        <li><a href="#最適値について">最適値について</a></li>
+        </ul></li>
+        <li><a href="#参考文献">参考文献</a></li>
+        </ul>
+        <ul>
+            <li><a href="https://kyo-kutsuzawa.github.io/technical-note/">Technical notes 一覧に戻る</a></li>
+        </ul>
+    </nav>
+    <main>
+        <article>
+            <h1 id="概要">概要</h1>
+            <ul>
+            <li>softmax写像は最適化問題の形で定式化できる。この定式化はいくつかの側面で見ることができる。
+            <ol type="1">
+            <li>数ベクトルのargmax写像を最適化問題として定式化したときの目的関数にエントロピー正則化を加えたものと解釈できる。</li>
+            <li>ヘルムホルツエネルギーの最小化問題と解釈できる。</li>
+            <li>最適値は単体上に制限された負のエントロピー関数のLegendre-Fenchel変換として表せて、その値はlog-sum-exp関数で計算できる。</li>
+            </ol></li>
+            </ul>
+            <h1 id="softmax写像">softmax写像</h1>
+            <p>文献[1]を参考に、softmax写像をいくつかの側面で見てみる。</p>
+            <h2 id="最適化問題としての定式化">最適化問題としての定式化</h2>
+            <p>変数<span class="math inline">\(\boldsymbol{z} = [z_1, \ldots, z_n]^{\top} \in \mathbb{R}^n\)</span>について、softmax写像は以下のように計算される。<span class="math display">\[
+            \mathrm{softmax}(\boldsymbol{z}) = \left( \sum_{j=1}^n \exp (\lambda z_j) \right)^{-1}
+            \begin{bmatrix}
+            \exp(\lambda z_1)\\
+            \vdots\\
+            \exp(\lambda z_n)\\
+            \end{bmatrix}
+            \]</span>ここで<span class="math inline">\(\lambda &gt; 0\)</span>は逆温度とも呼ばれる定数である。</p>
+            <p>実装上は上記の定義がよく使われる一方で、softmax写像は以下のようにも定式化できる。<span class="math display">\[
+            \mathrm{softmax}(\boldsymbol{z}) = \mathop{\arg \max}_{\boldsymbol{x} \in \Delta^{n-1}} \left[ \boldsymbol{x}^{\top}\boldsymbol{z} - \lambda^{-1} \sum_{j=1}^n x_j \log x_j \right]
+            \]</span>ここで、<span class="math inline">\(\Delta^{n-1}\)</span>は以下のように定義される<span class="math inline">\((n-1)\)</span>次元単体である。<span class="math display">\[
+            \Delta^{n-1} = \left\{ \boldsymbol{x} \in \mathbb{R}^n \,\middle\vert\, \sum_{j=1}^{n} x_j = 1, x_j \geq 0 \ \text{for}\ j = 1, \ldots, n \right\}
+            \]</span></p>
+            <h2 id="argmax写像との関係">argmax写像との関係</h2>
+            <p>数ベクトル<span class="math inline">\(\boldsymbol{z} \in \mathbb{R}^n\)</span>に対するargmax写像を次式のように定義する。<span class="math display">\[
+            \mathrm{argmax}(\boldsymbol{z}) = \mathop{\arg \max}_{\boldsymbol{x} \in \Delta^{n-1}} \left[ \boldsymbol{x}^{\top}\boldsymbol{z} \right]
+            \]</span>argmax写像は、<span class="math inline">\(\boldsymbol{z}\)</span>の要素のうち最大値をとるところを1に、その他のところを0にした変数<span class="math inline">\(\boldsymbol{x}\)</span>を返す。例えば<span class="math inline">\(\boldsymbol{z} = [-1, 5, 1.2]^{\top}\)</span>に対して<span class="math inline">\(\mathrm{argmax}(\boldsymbol{z}) = [0, 1, 0]^{\top}\)</span>となる。<span class="math inline">\(\boldsymbol{z}\)</span>が複数の要素で最大値をとるときは解も複数になる。例えば<span class="math inline">\(\boldsymbol{z} = [3, 2, 3]^{\top}\)</span>に対しては<span class="math inline">\(\mathrm{argmax}(\boldsymbol{z}) = \left\{ [a, 0, 1 - a]^{\top} \,\middle\vert\, 0 \leq a \leq 1 \right\}\)</span>となる。すなわち、argmax写像は多価写像である。</p>
+            <p>softmax写像は、上記のargmax写像の拡張版とみることができる。argmax写像の目的関数に正則化項<span class="math inline">\(\left( -\sum_{j=1}^n x_j \log x_j \right)\)</span>を加えた形である。このとき<span class="math inline">\(\lambda\)</span>は正則化の強さを定める定数とみなせる。<span class="math inline">\(\boldsymbol{x}\)</span>を離散確率分布と解釈すると、この正則化項は情報理論におけるエントロピーと解釈することができ、この正則化項によって解のエントロピーが大きくなるようにはたらく。すなわち、<strong>softmax写像はargmax写像にエントロピー正則化を加えたものと解釈できる</strong>。argmax写像は解が複数ある多価写像であるが、正則化を加えたsoftmax写像は解が唯一に定まる。</p>
+            <h2 id="自由エネルギー最小化との関係">自由エネルギー最小化との関係</h2>
+            <p>softmax写像はヘルムホルツエネルギー（自由エネルギー）を最小化する写像とも解釈できる。softmax写像を最適化問題として定式化したときの目的関数に<span class="math inline">\(-1\)</span>を乗じたものを考える。<span class="math display">\[
+            -\boldsymbol{x}^{\top}\boldsymbol{z} - \lambda^{-1} \left( -\sum_{j=1}^n x_j \log x_j \right)
+            \]</span><span class="math inline">\(\lambda\)</span>が逆温度であることから<span class="math inline">\(\lambda^{-1}\)</span>は温度とみなせる。また、<span class="math inline">\(\left( -\sum_{j=1}^n x_j \log x_j \right)\)</span>はエントロピーと解釈できるのだった。ここで、<span class="math inline">\((-\boldsymbol{x}^{\top}\boldsymbol{z})\)</span>を内部エネルギーだと解釈してみる。すると、上記の目的関数の値は熱力学におけるヘルムホルツエネルギーに対応する。熱力学においてヘルムホルツエネルギー<span class="math inline">\(F\)</span>は、内部エネルギー<span class="math inline">\(U\)</span>、温度<span class="math inline">\(T\)</span>、エントロピー<span class="math inline">\(S\)</span>に対して<span class="math inline">\(F = U - T S\)</span>の関係がある。このことから、softmax写像はヘルムホルツエネルギー<span class="math inline">\(F\)</span>を使って以下のように表せる。<span class="math display">\[
+            \begin{aligned}
+            \mathrm{softmax}(\boldsymbol{z})
+            &amp;= \mathop{\arg \max}_{\boldsymbol{x} \in \Delta^{n-1}} \left[ \boldsymbol{x}^{\top}\boldsymbol{z} - \lambda^{-1} \sum_{j=1}^n x_j \log x_j \right] \\
+            &amp;= \mathop{\arg \min}_{\boldsymbol{x} \in \Delta^{n-1}} \left[ -\boldsymbol{x}^{\top}\boldsymbol{z} - \lambda^{-1} \left( -\sum_{j=1}^n x_j \log x_j \right) \right]\\
+            &amp;= \mathop{\arg \min}_{\boldsymbol{x} \in \Delta^{n-1}} F
+            \end{aligned}
+            \]</span>すなわち、<strong>softmax写像はヘルムホルツエネルギーを最小化する写像とも解釈できる</strong>。</p>
+            <h2 id="最適値について">最適値について</h2>
+            <p>softmax写像は上記のように最適解を求める問題（argmax）として表されるが、今度は最適値（max）のほうを考える。まず、単体上に制限された負のエントロピー関数<span class="math inline">\(\psi: \mathbb{R}^n \rightarrow \mathbb{R} \cup \{+\infty\}\)</span>を考える。<span class="math display">\[
+            \psi(\boldsymbol{x}) \triangleq
+            \begin{cases}
+                \lambda^{-1} \sum_{j=1}^n x_j \log x_j &amp; \boldsymbol{x} \in \Delta^{n-1}\\
+                +\infty &amp; \boldsymbol{x} \notin \Delta^{n-1}
+            \end{cases}
+            \]</span>この<span class="math inline">\(\psi\)</span>を使うと、softmax写像は以下のように書き直せる。<span class="math display">\[
+            \mathrm{softmax}(\boldsymbol{z}) = \mathop{\arg \max}_{\boldsymbol{x} \in \mathbb{R}^n} \left[ \boldsymbol{x}^{\top}\boldsymbol{z} - \psi(\boldsymbol{x}) \right]
+            \]</span>なお、<span class="math inline">\(\psi\)</span>は単体<span class="math inline">\(\Delta^{n-1}\)</span>の外で<span class="math inline">\(+\infty\)</span>の値をとるので、上記の最適化問題では<span class="math inline">\(\boldsymbol{x}\)</span>の制約条件が不要になっている。</p>
+            <p>上記の最適化問題の最適値は以下の形で表せる。<span class="math display">\[
+            \max_{x \in \mathbb{R}^n} \left[ \boldsymbol{x}^{\top}\boldsymbol{z} - \psi(\boldsymbol{x}) \right]
+            \]</span>これは<span class="math inline">\(\psi\)</span>の<a href="https://ja.wikipedia.org/wiki/%E5%87%B8%E5%85%B1%E5%BD%B9%E6%80%A7">Legendre-Fenchel変換</a>の形である。元の関数に上付き星印を付けて、以下のように表せる。<span class="math display">\[
+            \psi^{\star}(\boldsymbol{z}) = \max_{x \in \mathbb{R}^n} \left[ \boldsymbol{x}^{\top}\boldsymbol{z} - \psi(\boldsymbol{x}) \right]
+            \]</span><span class="math inline">\(\psi^*(\boldsymbol{z})\)</span>の値は以下の式で計算できる。<span class="math display">\[
+            \psi^{\star}(\boldsymbol{z}) = \lambda^{-1} \log \left[ \sum_{j=1}^n \exp(\lambda z_j) \right]
+            \]</span>これはいわゆる（逆温度パラメータ付きの）log-sum-exp関数である。つまり、softmax写像を最適化問題として定式化したとき、その問題の<strong>最適値は負のエントロピー関数のLegendre-Fenchel変換であり、その値はlog-sum-exp関数で計算できる</strong>。</p>
+            <h1 id="参考文献">参考文献</h1>
+            <ol type="1">
+            <li>Bolin Gao and Lacra Pavel, “On the Properties of the Softmax Function with Application in Game Theory and Reinforcement Learning,” arXiv preprint, arXiv:1704.00805v4, 2018. URL: <a href="https://arxiv.org/abs/1704.00805">https://arxiv.org/abs/1704.00805</a></li>
+            </ol>
+        </article>
+    </main>
+    <footer>
+        <a href="https://kyo-kutsuzawa.github.io/technical-note/">Technical notes 一覧に戻る</a>
+    </footer>
+</body>
+</html>
