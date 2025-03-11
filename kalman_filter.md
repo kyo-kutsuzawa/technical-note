@@ -211,7 +211,7 @@ $$
 \begin{aligned}
 p(x_k| y_{0:k-1})
 &= \int p(x_k| x_{k-1}) p(x_{k-1}| y_{0:k-1}) \mathrm{d}x_{k-1} \\
-&= \int \mathcal{N}(x_k; A_k x_{k-1} + B_k u_k, R_k) p(x_{k-1}| y_{0:k-1}) \mathcal{N}(x_{k-1}; \hat{x}_{k-1}, S_{k-1}) \mathrm{d}x_{k-1} \\
+&= \int \mathcal{N}(x_k; A_k x_{k-1} + B_k u_k, R_k) \mathcal{N}(x_{k-1}; \hat{x}_{k-1}, \Sigma_{k-1}) \mathrm{d}x_{k-1} \\
 &= \int \det(2\pi R_k)^{-\frac{1}{2}} \exp \left[-\frac{1}{2}\{x_k - (A_k x_{k-1} + B_k u_k)\}^{\top} R_k^{-1} \{x_k - (A_k x_{k-1} + B_k u_k)\} \right] \det(2\pi\Sigma_k)^{-\frac{1}{2}} \exp \left[-\frac{1}{2}(x_{k-1} - \mu_{k-1})^{\top} \Sigma_{k-1}^{-1} (x_{k-1} - \mu_{k-1}) \right] \mathrm{d}x_{k-1} \\
 &= \det(2\pi R_k)^{-\frac{1}{2}} \det(2\pi\Sigma_k)^{-\frac{1}{2}} \int \exp \left(-\frac{1}{2} \left[\{x_k - (A_k x_{k-1} + B_k u_k)\}^{\top} R_k^{-1} \{x_k - (A_k x_{k-1} + B_k u_k)\} + (x_{k-1} - \mu_{k-1})^{\top} \Sigma_{k-1}^{-1} (x_{k-1} - \mu_{k-1}) \right]\right) \mathrm{d}x_{k-1} \\
 &= \eta \int \exp \left(-\frac{1}{2} L \right) \mathrm{d}x_{k-1}
@@ -249,7 +249,7 @@ $$
 ここで、$L_1(x_k)$は$x_{k-1}$を含まないので、$x_{k-1}$で偏微分するとゼロになる。
 すなわち、
 $$
-\frac{\partial}{\partial x_{k-1}} L = \frac{\partial}{\partial x_{k-1}} [L_1(x_k) + L_2(x_k, x_{k-1})] = \frac{\partial}{\partial x_{k-1}} = L_2(x_k, x_{k-1})
+\frac{\partial}{\partial x_{k-1}} L = \frac{\partial}{\partial x_{k-1}} [L_1(x_k) + L_2(x_k, x_{k-1})] = \frac{\partial}{\partial x_{k-1}} L_2(x_k, x_{k-1})
 $$
 が成り立つ。
 これを使うと、1階偏微分は以下のように求まる。
@@ -279,7 +279,7 @@ $$
 $$
 \begin{aligned}
 S_2 &= A_k^{\top} R_k^{-1} A_k + \Sigma_{k-1}^{-1} \triangleq \Psi_k^{-1} \\
-M_2 &= \Psi_k [A_k^{\top} R_k^{-1} (x_k - B_k u_k)]
+M_2 &= \Psi_k [A_k^{\top} R_k^{-1} (x_k - B_k u_k) + \Sigma_{k-1}^{-1} \mu_{k-1}]
 \end{aligned}
 $$
 
@@ -288,7 +288,7 @@ $$
 $$
 \begin{aligned}
 L_1(x_k) =& L - L_2(x_k, x_{k-1}) \\
-=& \{x_k - (A_k x_{k-1} + B_k u_k)\}^{\top} Q_k^{-1} \{x_k - (A_k x_{k-1} + B_k u_k)\} + (x_{k-1} - \mu_{k-1})^{\top} \Sigma_{k-1}^{-1} (x_{k-1} - \mu_{k-1}) \\
+=& \{x_k - (A_k x_{k-1} + B_k u_k)\}^{\top} R_k^{-1} \{x_k - (A_k x_{k-1} + B_k u_k)\} + (x_{k-1} - \mu_{k-1})^{\top} \Sigma_{k-1}^{-1} (x_{k-1} - \mu_{k-1}) \\
 &- (x_{k-1} - \Psi_k [A_k^{\top} R_k^{-1} (x_k - B_k u_k)])^{\top} \Psi_k^{-1} (x_{k-1} - \Psi_k [A_k^{\top} R_k^{-1} (x_k - B_k u_k)]) \\
 =& (x_k - B_k u_k)^{\top} R_k^{-1} (x_k - B_k u_k) + \mu_{k-1}^{\top} \Sigma_{k-1}^{-1} \mu_{k-1} + [A_k^{\top} R_k^{-1} (x_k - B_k u_k) + \Sigma_{k-1}^{-1} \mu_{k-1}]^{\top} \Psi_k [A_k^{\top} R_k^{-1} (x_k - B_k u_k) + \Sigma_{k-1}^{-1} \mu_{k-1}]
 \end{aligned}
@@ -489,17 +489,17 @@ $$
 $$
 \begin{aligned}
 &(\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} C_k^{\top} Q_k^{-1}\\
-=& (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} C_k^{\top} Q_k^{-1} (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k) (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
-=& (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k^{\top} \bar{\Sigma}_k^{-1} C_k + C_k^{\top} Q_k^{-1} Q_k) (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
-=& (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k^{\top} \bar{\Sigma}_k^{-1} C_k + C_k^{\top}) (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
-=& (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k^{\top} \bar{\Sigma}_k^{-1} C_k + \bar{\Sigma}_k^{-1} \bar{\Sigma}_k C_k^{\top}) (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
-=& (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k^{\top} + \bar{\Sigma}_k^{-1}) \bar{\Sigma}_k C_k^{\top} (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
-=& \bar{\Sigma}_k C_k^{\top} (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
+=& (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} C_k^{\top} Q_k^{-1} (C_k \bar{\Sigma}_k C_k^{\top} + Q_k) (C_k \bar{\Sigma}_k C_k^{\top} + Q_k)^{-1}\\
+=& (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k \bar{\Sigma}_k C_k^{\top} + C_k^{\top} Q_k^{-1} Q_k) (C_k \bar{\Sigma}_k C_k^{\top} + Q_k)^{-1}\\
+=& (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k \bar{\Sigma}_k C_k^{\top} + C_k^{\top}) (C_k \bar{\Sigma}_k C_k^{\top} + Q_k)^{-1}\\
+=& (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k \bar{\Sigma}_k C_k^{\top} + \bar{\Sigma}_k^{-1} \bar{\Sigma}_k C_k^{\top}) (C_k \bar{\Sigma}_k C_k^{\top} + Q_k)^{-1}\\
+=& (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k + \bar{\Sigma}_k^{-1}) \bar{\Sigma}_k C_k^{\top} (C_k \bar{\Sigma}_k C_k^{\top} + Q_k)^{-1}\\
+=& \bar{\Sigma}_k C_k^{\top} (C_k \bar{\Sigma}_k C_k^{\top} + Q_k)^{-1}\\
 \end{aligned}
 $$
 となる。よって、$\mu_k$は以下のように表せる。
 $$
-\mu_k = \bar{\mu}_k + \bar{\Sigma}_k C_k^{\top} (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1} (y_k - C_k \bar{\mu}_k)
+\mu_k = \bar{\mu}_k + \bar{\Sigma}_k C_k^{\top} (C_k \bar{\Sigma}_k C_k^{\top} + Q_k)^{-1} (y_k - C_k \bar{\mu}_k)
 $$
 
 続いて、$\Sigma_k$について考える。
@@ -507,18 +507,18 @@ $$
 $$
 \begin{aligned}
 \Sigma_k &= (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1}\\
-&= \bar{\Sigma}_k - \bar{\Sigma}_k C_k^{-1} (Q_k + C_k^{\top} \bar{\Sigma}_k^{-1} C_k) C_k \bar{\Sigma}_k\\
-&= [I - \bar{\Sigma}_k C_k^{-1} (Q_k + C_k^{\top} \bar{\Sigma}_k^{-1} C_k) C_k] \bar{\Sigma}_k
+&= \bar{\Sigma}_k - \bar{\Sigma}_k C_k^{\top} (Q_k + C_k \bar{\Sigma}_k C_k^{\top})^{-1} C_k \bar{\Sigma}_k\\
+&= [I - \bar{\Sigma}_k C_k^{\top} (Q_k + C_k \bar{\Sigma}_k C_k^{\top})^{-1} C_k] \bar{\Sigma}_k
 \end{aligned}
 $$
 
-以上のようにして得られた$\mu_k$と$\Sigma_k$とを見比べると、共通して$\bar{\Sigma}_k C_k^{-1} (Q_k + C_k^{\top} \bar{\Sigma}_k^{-1} C_k)$を含むことがわかる。
+以上のようにして得られた$\mu_k$と$\Sigma_k$とを見比べると、共通して$\bar{\Sigma}_k C_k^{\top} (Q_k + C_k \bar{\Sigma}_k C_k^{\top})^{-1}$を含むことがわかる。
 これを$K_k$とおくことで、更新ステップの確率分布$p(x_k| y_{0:k})$は以下のように表せる。
 $$
 p(x_k| y_{0:k}) = \mathcal{N}(x_k; \bar{\mu}_k + K_k (y_k - C_k \bar{\mu}_k),  (I - K_k C_k) \bar{\Sigma}_k)
 $$
 $$
-K_k \triangleq \bar{\Sigma}_k C_k^{-1} (Q_k + C_k^{\top} \bar{\Sigma}_k^{-1} C_k)
+K_k \triangleq \bar{\Sigma}_k C_k^{\top} (Q_k + C_k \bar{\Sigma}_k C_k^{\top})^{-1}
 $$
 これらの式は、カルマンフィルタの更新ステップの手続きそのものである。
 

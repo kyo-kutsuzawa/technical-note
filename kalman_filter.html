@@ -164,7 +164,7 @@
             \begin{aligned}
             p(x_k| y_{0:k-1})
             &amp;= \int p(x_k| x_{k-1}) p(x_{k-1}| y_{0:k-1}) \mathrm{d}x_{k-1} \\
-            &amp;= \int \mathcal{N}(x_k; A_k x_{k-1} + B_k u_k, R_k) p(x_{k-1}| y_{0:k-1}) \mathcal{N}(x_{k-1}; \hat{x}_{k-1}, S_{k-1}) \mathrm{d}x_{k-1} \\
+            &amp;= \int \mathcal{N}(x_k; A_k x_{k-1} + B_k u_k, R_k) \mathcal{N}(x_{k-1}; \hat{x}_{k-1}, \Sigma_{k-1}) \mathrm{d}x_{k-1} \\
             &amp;= \int \det(2\pi R_k)^{-\frac{1}{2}} \exp \left[-\frac{1}{2}\{x_k - (A_k x_{k-1} + B_k u_k)\}^{\top} R_k^{-1} \{x_k - (A_k x_{k-1} + B_k u_k)\} \right] \det(2\pi\Sigma_k)^{-\frac{1}{2}} \exp \left[-\frac{1}{2}(x_{k-1} - \mu_{k-1})^{\top} \Sigma_{k-1}^{-1} (x_{k-1} - \mu_{k-1}) \right] \mathrm{d}x_{k-1} \\
             &amp;= \det(2\pi R_k)^{-\frac{1}{2}} \det(2\pi\Sigma_k)^{-\frac{1}{2}} \int \exp \left(-\frac{1}{2} \left[\{x_k - (A_k x_{k-1} + B_k u_k)\}^{\top} R_k^{-1} \{x_k - (A_k x_{k-1} + B_k u_k)\} + (x_{k-1} - \mu_{k-1})^{\top} \Sigma_{k-1}^{-1} (x_{k-1} - \mu_{k-1}) \right]\right) \mathrm{d}x_{k-1} \\
             &amp;= \eta \int \exp \left(-\frac{1}{2} L \right) \mathrm{d}x_{k-1}
@@ -183,7 +183,7 @@
             \]</span><span class="math display">\[
             S_2 = \frac{1}{2} \left( \frac{\partial}{\partial x_{k-1}} \right)^2 L_2(x_k, x_{k-1})
             \]</span>ここで、<span class="math inline">\(L_1(x_k)\)</span>は<span class="math inline">\(x_{k-1}\)</span>を含まないので、<span class="math inline">\(x_{k-1}\)</span>で偏微分するとゼロになる。すなわち、<span class="math display">\[
-            \frac{\partial}{\partial x_{k-1}} L = \frac{\partial}{\partial x_{k-1}} [L_1(x_k) + L_2(x_k, x_{k-1})] = \frac{\partial}{\partial x_{k-1}} = L_2(x_k, x_{k-1})
+            \frac{\partial}{\partial x_{k-1}} L = \frac{\partial}{\partial x_{k-1}} [L_1(x_k) + L_2(x_k, x_{k-1})] = \frac{\partial}{\partial x_{k-1}} L_2(x_k, x_{k-1})
             \]</span>が成り立つ。これを使うと、1階偏微分は以下のように求まる。<span class="math display">\[
             \begin{aligned}
             \frac{\partial}{\partial x_{k-1}} L_2(x_k, x_{k-1})
@@ -204,13 +204,13 @@
             <p>最終的に、以下が得られる。<span class="math display">\[
             \begin{aligned}
             S_2 &amp;= A_k^{\top} R_k^{-1} A_k + \Sigma_{k-1}^{-1} \triangleq \Psi_k^{-1} \\
-            M_2 &amp;= \Psi_k [A_k^{\top} R_k^{-1} (x_k - B_k u_k)]
+            M_2 &amp;= \Psi_k [A_k^{\top} R_k^{-1} (x_k - B_k u_k) + \Sigma_{k-1}^{-1} \mu_{k-1}]
             \end{aligned}
             \]</span></p>
             <p>続いて、<span class="math inline">\(L_1(x_k)\)</span>について。上の結果より、<span class="math display">\[
             \begin{aligned}
             L_1(x_k) =&amp; L - L_2(x_k, x_{k-1}) \\
-            =&amp; \{x_k - (A_k x_{k-1} + B_k u_k)\}^{\top} Q_k^{-1} \{x_k - (A_k x_{k-1} + B_k u_k)\} + (x_{k-1} - \mu_{k-1})^{\top} \Sigma_{k-1}^{-1} (x_{k-1} - \mu_{k-1}) \\
+            =&amp; \{x_k - (A_k x_{k-1} + B_k u_k)\}^{\top} R_k^{-1} \{x_k - (A_k x_{k-1} + B_k u_k)\} + (x_{k-1} - \mu_{k-1})^{\top} \Sigma_{k-1}^{-1} (x_{k-1} - \mu_{k-1}) \\
             &amp;- (x_{k-1} - \Psi_k [A_k^{\top} R_k^{-1} (x_k - B_k u_k)])^{\top} \Psi_k^{-1} (x_{k-1} - \Psi_k [A_k^{\top} R_k^{-1} (x_k - B_k u_k)]) \\
             =&amp; (x_k - B_k u_k)^{\top} R_k^{-1} (x_k - B_k u_k) + \mu_{k-1}^{\top} \Sigma_{k-1}^{-1} \mu_{k-1} + [A_k^{\top} R_k^{-1} (x_k - B_k u_k) + \Sigma_{k-1}^{-1} \mu_{k-1}]^{\top} \Psi_k [A_k^{\top} R_k^{-1} (x_k - B_k u_k) + \Sigma_{k-1}^{-1} \mu_{k-1}]
             \end{aligned}
@@ -342,27 +342,27 @@
             <p>さらに、<span class="math inline">\((\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} C_k^{\top} Q_k^{-1}\)</span>の部分を抜き出して変形すると、<span class="math display">\[
             \begin{aligned}
             &amp;(\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} C_k^{\top} Q_k^{-1}\\
-            =&amp; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} C_k^{\top} Q_k^{-1} (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k) (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
-            =&amp; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k^{\top} \bar{\Sigma}_k^{-1} C_k + C_k^{\top} Q_k^{-1} Q_k) (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
-            =&amp; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k^{\top} \bar{\Sigma}_k^{-1} C_k + C_k^{\top}) (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
-            =&amp; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k^{\top} \bar{\Sigma}_k^{-1} C_k + \bar{\Sigma}_k^{-1} \bar{\Sigma}_k C_k^{\top}) (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
-            =&amp; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k^{\top} + \bar{\Sigma}_k^{-1}) \bar{\Sigma}_k C_k^{\top} (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
-            =&amp; \bar{\Sigma}_k C_k^{\top} (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1}\\
+            =&amp; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} C_k^{\top} Q_k^{-1} (C_k \bar{\Sigma}_k C_k^{\top} + Q_k) (C_k \bar{\Sigma}_k C_k^{\top} + Q_k)^{-1}\\
+            =&amp; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k \bar{\Sigma}_k C_k^{\top} + C_k^{\top} Q_k^{-1} Q_k) (C_k \bar{\Sigma}_k C_k^{\top} + Q_k)^{-1}\\
+            =&amp; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k \bar{\Sigma}_k C_k^{\top} + C_k^{\top}) (C_k \bar{\Sigma}_k C_k^{\top} + Q_k)^{-1}\\
+            =&amp; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k \bar{\Sigma}_k C_k^{\top} + \bar{\Sigma}_k^{-1} \bar{\Sigma}_k C_k^{\top}) (C_k \bar{\Sigma}_k C_k^{\top} + Q_k)^{-1}\\
+            =&amp; (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1} (C_k^{\top} Q_k^{-1} C_k + \bar{\Sigma}_k^{-1}) \bar{\Sigma}_k C_k^{\top} (C_k \bar{\Sigma}_k C_k^{\top} + Q_k)^{-1}\\
+            =&amp; \bar{\Sigma}_k C_k^{\top} (C_k \bar{\Sigma}_k C_k^{\top} + Q_k)^{-1}\\
             \end{aligned}
             \]</span>となる。よって、<span class="math inline">\(\mu_k\)</span>は以下のように表せる。<span class="math display">\[
-            \mu_k = \bar{\mu}_k + \bar{\Sigma}_k C_k^{\top} (C_k^{\top} \bar{\Sigma}_k^{-1} C_k + Q_k)^{-1} (y_k - C_k \bar{\mu}_k)
+            \mu_k = \bar{\mu}_k + \bar{\Sigma}_k C_k^{\top} (C_k \bar{\Sigma}_k C_k^{\top} + Q_k)^{-1} (y_k - C_k \bar{\mu}_k)
             \]</span></p>
             <p>続いて、<span class="math inline">\(\Sigma_k\)</span>について考える。予測ステップの導出で使った逆行列の補助定理を使うと、<span class="math inline">\(\Sigma_k\)</span>は以下のように変形できる。<span class="math display">\[
             \begin{aligned}
             \Sigma_k &amp;= (\bar{\Sigma}_k^{-1} + C_k^{\top} Q_k^{-1} C_k)^{-1}\\
-            &amp;= \bar{\Sigma}_k - \bar{\Sigma}_k C_k^{-1} (Q_k + C_k^{\top} \bar{\Sigma}_k^{-1} C_k) C_k \bar{\Sigma}_k\\
-            &amp;= [I - \bar{\Sigma}_k C_k^{-1} (Q_k + C_k^{\top} \bar{\Sigma}_k^{-1} C_k) C_k] \bar{\Sigma}_k
+            &amp;= \bar{\Sigma}_k - \bar{\Sigma}_k C_k^{\top} (Q_k + C_k \bar{\Sigma}_k C_k^{\top})^{-1} C_k \bar{\Sigma}_k\\
+            &amp;= [I - \bar{\Sigma}_k C_k^{\top} (Q_k + C_k \bar{\Sigma}_k C_k^{\top})^{-1} C_k] \bar{\Sigma}_k
             \end{aligned}
             \]</span></p>
-            <p>以上のようにして得られた<span class="math inline">\(\mu_k\)</span>と<span class="math inline">\(\Sigma_k\)</span>とを見比べると、共通して<span class="math inline">\(\bar{\Sigma}_k C_k^{-1} (Q_k + C_k^{\top} \bar{\Sigma}_k^{-1} C_k)\)</span>を含むことがわかる。これを<span class="math inline">\(K_k\)</span>とおくことで、更新ステップの確率分布<span class="math inline">\(p(x_k| y_{0:k})\)</span>は以下のように表せる。<span class="math display">\[
+            <p>以上のようにして得られた<span class="math inline">\(\mu_k\)</span>と<span class="math inline">\(\Sigma_k\)</span>とを見比べると、共通して<span class="math inline">\(\bar{\Sigma}_k C_k^{\top} (Q_k + C_k \bar{\Sigma}_k C_k^{\top})^{-1}\)</span>を含むことがわかる。これを<span class="math inline">\(K_k\)</span>とおくことで、更新ステップの確率分布<span class="math inline">\(p(x_k| y_{0:k})\)</span>は以下のように表せる。<span class="math display">\[
             p(x_k| y_{0:k}) = \mathcal{N}(x_k; \bar{\mu}_k + K_k (y_k - C_k \bar{\mu}_k),  (I - K_k C_k) \bar{\Sigma}_k)
             \]</span><span class="math display">\[
-            K_k \triangleq \bar{\Sigma}_k C_k^{-1} (Q_k + C_k^{\top} \bar{\Sigma}_k^{-1} C_k)
+            K_k \triangleq \bar{\Sigma}_k C_k^{\top} (Q_k + C_k \bar{\Sigma}_k C_k^{\top})^{-1}
             \]</span>これらの式は、カルマンフィルタの更新ステップの手続きそのものである。</p>
             <h1 id="まとめ">まとめ</h1>
             <p>もうちょっとわかりやすくなるようにしたいので直すかも。</p>
