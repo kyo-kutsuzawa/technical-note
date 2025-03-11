@@ -3,6 +3,7 @@
     --foreground-color: #2d3436;
     --accent-color: #0487e2;
     --hover-color: #b0d6f5;
+    --tile-color: #e0e0e0;
 }
 
 body {
@@ -89,17 +90,18 @@ img {
     padding: 0.5em;
 }
 
-.item:hover
-{
-    background-color: var(--hover-color);
-}
-
 .tile {
     float: left;
     max-width: 250px;
     min-height: 70px;
     text-align: left;
     width: 90%;
+    background-color: var(--tile-color);
+}
+
+.tile:hover
+{
+    background-color: var(--hover-color);
 }
 
 .math.display {
