@@ -240,8 +240,8 @@ $$
 $$
 \begin{aligned}
   m_{\mathrm{s}}^{-1} &\rightarrow K_{\mathrm{f}} \\
-  k_{\mathrm{d}} &\rightarrow 0 \\
-  d_{\mathrm{d}} &\rightarrow 0
+  k_{\mathrm{s}} &\rightarrow 0 \\
+  d_{\mathrm{s}} &\rightarrow 0
 \end{aligned}
 $$
 すると、加速度指令値は力の比例制御の形で計算されるようになる。

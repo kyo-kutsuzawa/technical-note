@@ -13,22 +13,22 @@
     </header>
     <nav>
         <ul>
-        <li><a href="#概要">概要</a></li>
-        <li><a href="#加速度制御に基づくインピーダンス制御">加速度制御に基づくインピーダンス制御</a>
+        <li><a href="#概要" id="toc-概要">概要</a></li>
+        <li><a href="#加速度制御に基づくインピーダンス制御" id="toc-加速度制御に基づくインピーダンス制御">加速度制御に基づくインピーダンス制御</a>
         <ul>
-        <li><a href="#余談１平衡点の時間変化がある場合">余談１：平衡点の時間変化がある場合</a></li>
-        <li><a href="#余談２制御系の特性">余談２：制御系の特性</a></li>
+        <li><a href="#余談１平衡点の時間変化がある場合" id="toc-余談１平衡点の時間変化がある場合">余談１：平衡点の時間変化がある場合</a></li>
+        <li><a href="#余談２制御系の特性" id="toc-余談２制御系の特性">余談２：制御系の特性</a></li>
         </ul></li>
-        <li><a href="#モード空間でのバイラテラル制御系の設計">モード空間でのバイラテラル制御系の設計</a>
+        <li><a href="#モード空間でのバイラテラル制御系の設計" id="toc-モード空間でのバイラテラル制御系の設計">モード空間でのバイラテラル制御系の設計</a>
         <ul>
-        <li><a href="#座標変換">座標変換</a></li>
-        <li><a href="#差のモードの運動制御">差のモードの運動制御</a></li>
-        <li><a href="#和のモードの運動制御">和のモードの運動制御</a></li>
-        <li><a href="#元の座標系での記述">元の座標系での記述</a></li>
-        <li><a href="#制御則の力学的意味">制御則の力学的意味</a></li>
+        <li><a href="#座標変換" id="toc-座標変換">座標変換</a></li>
+        <li><a href="#差のモードの運動制御" id="toc-差のモードの運動制御">差のモードの運動制御</a></li>
+        <li><a href="#和のモードの運動制御" id="toc-和のモードの運動制御">和のモードの運動制御</a></li>
+        <li><a href="#元の座標系での記述" id="toc-元の座標系での記述">元の座標系での記述</a></li>
+        <li><a href="#制御則の力学的意味" id="toc-制御則の力学的意味">制御則の力学的意味</a></li>
         </ul></li>
-        <li><a href="#まとめ">まとめ</a></li>
-        <li><a href="#参考文献">参考文献</a></li>
+        <li><a href="#まとめ" id="toc-まとめ">まとめ</a></li>
+        <li><a href="#参考文献" id="toc-参考文献">参考文献</a></li>
         </ul>
         <ul>
             <li><a href="https://kyo-kutsuzawa.github.io/technical-note/">Technical notes 一覧に戻る</a></li>
@@ -67,7 +67,8 @@
             \end{aligned}
             \]</span></p>
             <figure>
-            <img src="acceleration_based_bilateral_control/spring-mass-damper.svg" alt="a mass-spring-damper system" /><figcaption aria-hidden="true">a mass-spring-damper system</figcaption>
+            <img src="acceleration_based_bilateral_control/spring-mass-damper.svg" alt="a mass-spring-damper system" />
+            <figcaption aria-hidden="true">a mass-spring-damper system</figcaption>
             </figure>
             <p>すなわち、<strong>加速度制御系に対して位置と力のフィードバックをすることで、制御系は制御ゲインに対応する機械定数をもつように振る舞う</strong>。系が所望の機械定数をもつかのように運動を制御することから、この制御則はインピーダンス制御（<em>Hogan, 1985</em>）に他ならない。</p>
             <p>この方法によるインピーダンス制御系の設計は、制御ゲインによって系の機械定数がほぼ直接指定できるという明快さに利点があると思われる。外乱オブザーバ（<em>Ohishi et al., 1983</em>）を使って設計された加速度制御系では、制御対象のモデル化誤差の影響は独立した内部ループで外乱として抑圧され、閉ループ系は規範モデルのとおりに振る舞う。そのため、外部ループでは制御対象の元々の機械インピーダンスを考慮することなくシンプルに所望の振舞いを設計できる。この方法は、制御対象の重力や摩擦力、コリオリ力、アクチュエータ間の干渉などを陽に計算して補償する計算トルク法と比べて実装が簡単であり、モデル化誤差に対する頑健性も高い。</p>
@@ -139,7 +140,8 @@
             \end{aligned}
             \]</span></p>
             <figure>
-            <img src="acceleration_based_bilateral_control/mode_coordinates.svg" alt="mode coordinates" /><figcaption aria-hidden="true">mode coordinates</figcaption>
+            <img src="acceleration_based_bilateral_control/mode_coordinates.svg" alt="mode coordinates" />
+            <figcaption aria-hidden="true">mode coordinates</figcaption>
             </figure>
             <p>速度の座標変換は、位置の座標変換を時間微分して、以下のように求まる。<span class="math display">\[
             \begin{aligned}
@@ -185,8 +187,8 @@
             \]</span>和のモードの運動は、リーダーとフォロワーとの幾何中心（両者の慣性が同じなら重心でもある）の運動とみなせる。和のモードの運動に弾性と粘性がまったくなく、慣性が十分に小さいとき、操作者はリーダとフォロワーが存在しないかのように感じられる。これを理想的な挙動として、仮想質量の逆数を以下のように置き換える。<span class="math display">\[
             \begin{aligned}
               m_{\mathrm{s}}^{-1} &amp;\rightarrow K_{\mathrm{f}} \\
-              k_{\mathrm{d}} &amp;\rightarrow 0 \\
-              d_{\mathrm{d}} &amp;\rightarrow 0
+              k_{\mathrm{s}} &amp;\rightarrow 0 \\
+              d_{\mathrm{s}} &amp;\rightarrow 0
             \end{aligned}
             \]</span>すると、加速度指令値は力の比例制御の形で計算されるようになる。<span class="math display">\[
             \begin{aligned}
@@ -223,7 +225,8 @@
             \]</span></p>
             <p>これらの運動方程式は、質量<span class="math inline">\(m_{\mathrm{s}}\)</span>の質点2つが弾性係数<span class="math inline">\(\frac{1}{2} m_{\mathrm{s}} m_{\mathrm{d}}^{-1} k_{\mathrm{d}}\)</span>のバネと粘性係数<span class="math inline">\(\frac{1}{2} m_{\mathrm{s}} m_{\mathrm{d}}^{-1} d_{\mathrm{d}}\)</span>のダンパでつながっていて、両質点に外力<span class="math inline">\((f_{\mathrm{L}} + f_{\mathrm{F}})\)</span>が加わっているというモデルで表せる。リーダーに加わる外力<span class="math inline">\(f_{\mathrm{F}}\)</span>とフォロワーに加わる外力<span class="math inline">\(f_{\mathrm{L}}\)</span>は、現実には加わっていない力だが、制御的に加えられている。</p>
             <figure>
-            <img src="acceleration_based_bilateral_control/4ch_bilateral_control_system_1.svg" alt="mechanical system of an ABC system (1)" /><figcaption aria-hidden="true">mechanical system of an ABC system (1)</figcaption>
+            <img src="acceleration_based_bilateral_control/4ch_bilateral_control_system_1.svg" alt="mechanical system of an ABC system (1)" />
+            <figcaption aria-hidden="true">mechanical system of an ABC system (1)</figcaption>
             </figure>
             <p>この解釈は、2質点がバネ・ダンパで接続されているという明快な形で表せるのでわかりやすい。一方で、双方ともにリーダーの反力とフォロワーの反力との両方を受けるという点は、現実に起こっていることとは対応せず、すこし直感にそぐわない。</p>
             <p>上記とは異なる解釈もできる。リーダーに加わる外力<span class="math inline">\(f_{\mathrm{F}}\)</span>とフォロワーに加わる外力<span class="math inline">\(f_{\mathrm{L}}\)</span>をどちらも平衡点のずれとして考えることで、2つのバネ・マス・ダンパ系の組合せとして捉えることができる。</p>
@@ -246,7 +249,8 @@
             \]</span></p>
             <p>これらの運動方程式では、リーダーとフォロワーとがそれぞれ個別のバネ・マス・ダンパ系としてモデル化される。それぞれの平衡点は、相手の位置から相手の外力に対応した量だけ変位したところに置かれる。すなわち、リーダーとフォロワーとが等価的な平衡点（<span class="math inline">\(x_{\mathrm{L}}&#39;\)</span>と<span class="math inline">\(x_{\mathrm{F}}&#39;\)</span>）をやりとりしていると解釈できる。</p>
             <figure>
-            <img src="acceleration_based_bilateral_control/4ch_bilateral_control_system_2.svg" alt="mechanical system of an ABC system (2)" /><figcaption aria-hidden="true">mechanical system of an ABC system (2)</figcaption>
+            <img src="acceleration_based_bilateral_control/4ch_bilateral_control_system_2.svg" alt="mechanical system of an ABC system (2)" />
+            <figcaption aria-hidden="true">mechanical system of an ABC system (2)</figcaption>
             </figure>
             <p>この解釈は、機械的なモデルが少しややこしい形をしている一方で、リーダーとフォロワーとの情報交換という観点では明快である。両者は切り離されており、等価的な平衡点をやりとりしているだけである。この解釈に基づくと、例えばバイラテラル制御時の<span class="math inline">\(x_{\mathrm{L}}\)</span>と<span class="math inline">\(f_{\mathrm{L}}\)</span>とを記録して再生するモーションコピーシステムなどは、<span class="math inline">\(x_{\mathrm{L}}&#39;\)</span>を記録・再生しているものと簡単に説明できる。</p>
             <h1 id="まとめ">まとめ</h1>
